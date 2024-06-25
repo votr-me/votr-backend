@@ -1,7 +1,13 @@
-from typing import Dict, Any
-from fastapi import HTTPException, Query
+from typing import Any, Callable, Dict
+from fastapi import HTTPException, Query, Request
 from .constants import US_STATE_ABBREVIATIONS
 import datetime
+import hashlib
+from app.core.logging_config import configure_logging
+import logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 
 def clean_legislator_data(legislator: Dict[str, Any]) -> Dict[str, Any]:
@@ -40,3 +46,42 @@ def parse_geocodio_fields(fields: str = Query(None, fields="Data fields to retur
         return [field.strip() for field in fields.split(",")]
     else:
         return []
+
+
+def generate_param_hash(params: Dict) -> str:
+    sorted_params = sorted(params.items())
+    param_str = "|".join(f"{k}:{v}" for k, v in sorted_params)
+    hashed_part = hashlib.md5(param_str.encode("utf-8")).hexdigest()
+    return hashed_part
+
+
+def custom_cache_key_generator(
+    prefix: str,
+    namespace: str,
+    identifier: str,
+    param_hash: str,
+    max_key_length: int = 200,
+) -> str:
+    key_parts = [prefix, namespace, identifier, param_hash]
+    full_key = ":".join(str(part) for part in key_parts if part)
+
+    if len(full_key) > max_key_length:
+        full_key = hashlib.md5(full_key.encode("utf-8")).hexdigest()
+    return full_key
+
+
+def generic_cache_key_builder(func: Callable, *args, **kwargs) -> str:
+    request: Request = kwargs["request"]
+    query_params = dict(request.query_params)
+
+    prefix = "votr"
+    namespace = request.url.path.replace("/", ":").strip(":")
+    identifier = query_params.get(
+        "bioguideId", ""
+    )  # Change 'id' to the appropriate identifier if necessary
+    param_hash = generate_param_hash(query_params)
+
+    key = custom_cache_key_generator(
+        prefix=prefix, namespace=namespace, identifier=identifier, param_hash=param_hash
+    )
+    return key

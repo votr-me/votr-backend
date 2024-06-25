@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class RedisPool:
     _instance = None
 
@@ -36,9 +37,5 @@ class RedisPool:
             await self.start()
         return self.pool
 
-redis_pool = RedisPool(config.REDIS_URL)
 
-async def get_redis_client() -> redis.Redis:
-    pool = await redis_pool.get_pool()
-    logger.debug(f"Using Redis connection pool: {id(pool)}")
-    return pool
+redis_pool = RedisPool(config.REDIS_URL)

@@ -1,33 +1,42 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
-from app.schemas.opensecrets import Legislator
-from app.core.utilities import clean_legislator_data, validate_state_id
-from app.core.dependencies import get_opensecrets_client, get_fec_client, get_cdg_client
-from app.core.redis import get_redis_client
+from app.core.dependencies import get_cdg_client
+from app.core.utilities import generate_param_hash, custom_cache_key_generator
 from app.services import (
     OpenSecretsAsyncAPIClient,
     FECAsyncAPIClient,
     CongressAPIAsyncClient,
 )
-from typing import Any, Dict, List, Optional, Union
-import logging
-import redis.asyncio as redis
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Depends,
+    Query,
+    Request,
+)
+import json
+from fastapi_cache.decorator import cache
+from typing import Any, Dict, Optional, Union
 import httpx
-from fastapi_limiter.depends import RateLimiter
-
+import logging
+from app.core.utilities import generic_cache_key_builder
+from app.core.logging_config import configure_logging
+from app.core.analytics import SponsoredLegislation
+from fastapi_cache import FastAPICache
 
 router = APIRouter()
+
+configure_logging()
 logger = logging.getLogger(__name__)
+
 
 async def fetch_legislator_data(
     client: Optional[
         Union[OpenSecretsAsyncAPIClient, FECAsyncAPIClient, CongressAPIAsyncClient]
     ],
     method: str,
-    redis_client: redis.Redis,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     try:
-        response = await getattr(client, method)(redis_client=redis_client, **kwargs)
+        response = await getattr(client, method)(**kwargs)
         return response
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
@@ -35,115 +44,89 @@ async def fetch_legislator_data(
         raise HTTPException(status_code=400, detail=f"Invalid method: {method} - {e}")
 
 
-@router.get("/legislator/{cid}", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-async def get_legislator_info(
-    request:Request,
-    cid: str,
-    background_tasks: BackgroundTasks,
-    client: OpenSecretsAsyncAPIClient = Depends(get_opensecrets_client),
-    redis_client: redis.Redis = Depends(get_redis_client),
-) -> Legislator:
-    legislator_data = await fetch_legislator_data(
-        client=client, method="get_legislator", redis_client=redis_client, cid=cid
-    )
-    legislator_attributes = (
-        legislator_data.get("response", {})
-        .get("legislator", {})
-        .get("@attributes", None)
-    )
-    logger.debug(legislator_attributes)
-    if legislator_attributes:
-        legislator_attributes = clean_legislator_data(legislator_attributes)
-        return Legislator(**legislator_attributes)
-    else:
-        raise HTTPException(status_code=404, detail="Legislator not found")
-
-
-@router.get("/state/{state_id}", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-async def get_state_legislator_info(
-    background_tasks: BackgroundTasks,
-    state_id: str = Depends(validate_state_id),
-    client: OpenSecretsAsyncAPIClient = Depends(get_opensecrets_client),
-    redis_client: redis.Redis = Depends(get_redis_client),
-) -> List[Legislator]:
-    legislator_data = await fetch_legislator_data(
-        client=client,
-        method="get_legislators_by_state",
-        redis_client=redis_client,
-        state_id=state_id,
-    )
-    legislators = [
-        clean_legislator_data(legislator.get("@attributes", {}))
-        for legislator in legislator_data.get("response", {}).get("legislator", [])
-    ]
-    return [Legislator(**legislator) for legislator in legislators if legislator]
-
-
-@router.get("/candidate/{candidate_id}", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-async def get_fec_candidate_info(
-    background_tasks: BackgroundTasks,
-    candidate_id: str,
-    client: FECAsyncAPIClient = Depends(get_fec_client),
-    redis_client: redis.Redis = Depends(get_redis_client),
-):
-    legislator_data = await fetch_legislator_data(
-        client=client,
-        method="get_candidate",
-        redis_client=redis_client,
-        candidate_id=candidate_id,
-    )
-    logger.debug(legislator_data)
-
-
-@router.get("/congress/{bioguideId}", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-async def get_cdg_data(
-    background_tasks: BackgroundTasks,
-    bioguideId: str,
-    client: CongressAPIAsyncClient = Depends(get_cdg_client),
-    redis_client: redis.Redis = Depends(get_redis_client),
-):
-    legislator_data = await fetch_legislator_data(
-        client=client,
-        method="get_member_info",
-        redis_client=redis_client,
-        bioguideId=bioguideId,
-    )
-    return legislator_data
-
-@router.get("/congress/{bioguideId}/sponsored_legislation", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-async def get_sponsored_legislation(
-    background_tasks: BackgroundTasks,
-    bioguideId: str,
-    offset: int,
-    limit: int = 250,
-    client: CongressAPIAsyncClient = Depends(get_cdg_client),
-    redis_client: redis.Redis = Depends(get_redis_client),
-):
-    legislator_data = await fetch_legislator_data(
-        client=client,
-        method="get_sponsored_legislation",
-        redis_client=redis_client,
-        bioguideId=bioguideId,
-        limit=limit,
-        offset=offset,
-    )
-    return legislator_data
-
-@router.get("/congress/{bioguideId}/all_sponsored_legislation", dependencies=[Depends(RateLimiter(times=10, seconds=60))])
-async def get_all_sponsored_legislation(
-    background_tasks: BackgroundTasks,
-    bioguideId: str,
-    offset: int,
-    limit: int = 250,
-    client: CongressAPIAsyncClient = Depends(get_cdg_client),
-    redis_client: redis.Redis = Depends(get_redis_client),
-):
+async def fetch_legislation_analytics(
+    client: CongressAPIAsyncClient, bioguideId: str, offset: int, limit: int
+) -> SponsoredLegislation:
     legislator_data = await fetch_legislator_data(
         client=client,
         method="get_all_sponsored_legislation",
-        redis_client=redis_client,
+        bioguideId=bioguideId,
+        limit=limit,
+        offset=offset,
+    )
+    return SponsoredLegislation(sponsored_legislation_response=legislator_data)
+
+
+async def get_legislation_analytics(
+    bioguideId: str,
+    offset: int = 0,
+    limit: int = 250,
+    client: CongressAPIAsyncClient = Depends(get_cdg_client),
+) -> SponsoredLegislation:
+    return await fetch_legislation_analytics(client, bioguideId, offset, limit)
+
+
+@router.get("/congress/sponsored_legislation_all/")
+@cache(expire=36000, key_builder=generic_cache_key_builder)
+async def get_all_sponsored_legislation(
+    request: Request,
+    client: CongressAPIAsyncClient = Depends(get_cdg_client),
+    bioguideId: str = Query(..., description="bioguideId for legislator"),
+    offset: int = Query(0, description="index to start at"),
+    limit: int = Query(250, description="Number of bills to return at once (max 250)"),
+):
+    logger.debug(f"Request: {request}")
+    logger.debug(
+        generic_cache_key_builder(
+            func="get_all_sponsored_legislation",
+            bioguideId=bioguideId,
+            offset=offset,
+            limit=limit,
+            request=request,
+        )
+    )
+    legislator_data = await fetch_legislator_data(
+        client=client,
+        method="get_all_sponsored_legislation",
         bioguideId=bioguideId,
         limit=limit,
         offset=offset,
     )
     return legislator_data
+
+
+async def get_cached_all_sponsored_legislation(
+    request: Request, bioguideId: str, offset: int, limit: int
+):
+    # Generate the param hash
+    query_params = {"bioguideId": bioguideId, "offset": offset, "limit": limit}
+    param_hash = generate_param_hash(query_params)
+
+    # Construct the cache key
+    cache_key = custom_cache_key_generator(
+        prefix="votr",
+        namespace="api:v1:legislators:congress:sponsored_legislation_all",
+        identifier=bioguideId,
+        param_hash=param_hash,
+    )
+    logger.debug(cache_key)
+
+    cache_instance = FastAPICache.get_backend()
+    cached_data = await cache_instance.get(cache_key)
+
+    if not cached_data:
+        raise HTTPException(status_code=404, detail="Data not found in cache")
+
+    return json.loads(cached_data)
+
+
+@router.get("/congress/sponsored_legislation_summary")
+async def get_sponsored_legislation_summary(
+    request: Request,
+    bioguideId: str = Query(..., description="bioguideId for legislator"),
+    offset: int = Query(0, description="index to start at"),
+    limit: int = Query(250, description="Number of bills to return at once (max 250)"),
+    analytics: SponsoredLegislation = Depends(get_cached_all_sponsored_legislation),
+):
+    summary = analytics
+    return summary

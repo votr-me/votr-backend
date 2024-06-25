@@ -191,6 +191,7 @@ fastapi-limiter = "^0.1.6"
 pandas = "^2.2.2"
 polars = "^0.20.31"
 numpy = "^2.0.0"
+fastapi-cache2 = "^0.2.1"
 
 
 [build-system]

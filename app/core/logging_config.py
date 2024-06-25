@@ -17,10 +17,10 @@ def configure_logging() -> None:
     handlers = ["default", "timed_rotating_file"]
 
     api_keys_to_redact = [
-        config.OPENSECRETS_API_KEY, 
+        config.OPENSECRETS_API_KEY,
         config.GEOCODIO_API_KEY,
-        config.FEC_API_KEY, 
-        config.CONGRESS_GOV_API_KEY, 
+        config.FEC_API_KEY,
+        config.CONGRESS_GOV_API_KEY,
     ]
 
     dictConfig(

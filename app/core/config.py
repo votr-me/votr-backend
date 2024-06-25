@@ -16,7 +16,7 @@ class BaseConfig(BaseSettings):
     BASE_URL_CONGRESS_API: ClassVar[str] = "https://api.congress.gov/v3/"
     BASE_URL_OPENSECRETS_API: ClassVar[str] = "https://www.opensecrets.org/api/"
     FEC_BASE_URL: ClassVar[str] = "https://api.open.fec.gov/v1/"
-    GEOCODIO_BASE_URL: ClassVar[str]="https://api.geocod.io/v1.7/"
+    GEOCODIO_BASE_URL: ClassVar[str] = "https://api.geocod.io/v1.7/"
     CACHE_TTL: Optional[int] = 3600
 
     class Config:

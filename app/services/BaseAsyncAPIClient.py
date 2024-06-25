@@ -2,15 +2,13 @@ from typing import Any, Dict, Optional
 import httpx
 import json
 import logging
-import redis.asyncio as redis
 from fastapi import HTTPException
 from app.core.logging_config import configure_logging
-import hashlib
-import urllib.parse
 import asyncio
 
 configure_logging()
 logger = logging.getLogger(__name__)
+
 
 class BaseAsyncAPIClient:
     def __init__(
@@ -31,58 +29,20 @@ class BaseAsyncAPIClient:
         self.client = httpx.AsyncClient()
         self.retry_attempts = retry_attempts
         self.retry_delay = retry_delay
+        # self.cache_key = None
 
-    def create_cache_key(
-        self,
-        endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        method: str = "GET",
-    ) -> str:
-        params = params or {}
-        sorted_params = sorted({key: value for key, value in params.items() if key not in ['api_key', 'api_key_name']}.items())
-        encoded_params = urllib.parse.urlencode(sorted_params)
-        raw_key = f"{method}|{endpoint}|{self.service_name}|{encoded_params}"
-        hashed_key = hashlib.sha256(raw_key.encode()).hexdigest()
-        
-        return hashed_key
-    
-    def create_cache_key_full_url(
-        self,
-        url: str,
-        method: str = "GET",
-    ) -> str:
-        raw_key = f"{method}|{url}|{self.service_name}"
-        hashed_key = hashlib.sha256(raw_key.encode()).hexdigest()
-        
-        return hashed_key
-
-    async def get_full_url(
-        self,
-        url: str,
-        redis_client: Optional[redis.Redis] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cache_ttl: int = 3600,
-    ) -> Dict[str, Any]:
-        return await self._request("GET", url, None, headers, redis_client, cache_ttl)
-    
     async def _request(
         self,
         method: str,
         endpoint: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
-        redis_client: Optional[redis.Redis] = None,
-        cache_ttl: int = 3600,
     ) -> Dict[str, Any]:
-        
-        # Check if the endpoint is a full URL
         if endpoint.startswith("http"):
             url = endpoint
-            cache_key = self.create_cache_key_full_url(url, method)
         else:
             url = f"{self.base_url}{endpoint}"
-            cache_key = self.create_cache_key(endpoint, params, method)
-            
+
         headers = headers or {}
         params = params or {}
 
@@ -92,24 +52,10 @@ class BaseAsyncAPIClient:
             elif self.api_key_location == "query":
                 params[self.api_key_name] = self.api_key
 
-        if redis_client:
-            try:
-                cached_data = await redis_client.get(cache_key)
-                if cached_data:
-                    logger.debug(f"Cache hit for: {cache_key}")
-                    return json.loads(cached_data)
-            except redis.RedisError as e:
-                logger.error(f"Redis error during get: {e}")
-                raise HTTPException(
-                    status_code=503, detail="Caching service unavailable"
-                )
-        else:
-            logger.warning(f"No Cache hit for: {cache_key}")
-        
         attempt = 0
-
-        while attempt <= self.retry_attempts:
+        while attempt < self.retry_attempts:
             try:
+                logger.debug("Attempting to hit API endpoint...")
                 response = await self.client.request(
                     method, url, params=params, headers=headers
                 )
@@ -118,7 +64,6 @@ class BaseAsyncAPIClient:
                 if 200 <= response.status_code < 300:
                     data = response.json()
                     return data
-
                 if not response.content:
                     raise HTTPException(
                         status_code=500, detail="No data returned from API"
@@ -129,39 +74,49 @@ class BaseAsyncAPIClient:
 
             except json.JSONDecodeError as e:
                 logger.error(f"JSON decode error: {e}")
-                raise HTTPException(status_code=500, detail=f"Invalid JSON response from API: {e}")
+                raise HTTPException(
+                    status_code=500, detail=f"Invalid JSON response from API: {e}"
+                )
 
             except httpx.RequestError as e:
-                try:
-                    if isinstance(e, httpx.TimeoutException) and attempt < self.retry_attempts:
-                        attempt += 1
-                        await asyncio.sleep(self.retry_delay)
-                        continue  # Retry
+                logger.error(f"Request error (attempt {attempt + 1}): {e}")
+                if (
+                    isinstance(e, httpx.TimeoutException)
+                    and attempt < self.retry_attempts - 1
+                ):
+                    attempt += 1
+                    await asyncio.sleep(self.retry_delay)
+                    continue  # Retry
 
-                    logger.error(f"Request error (attempt {attempt}): {e}")  
-                    raise HTTPException(status_code=500, detail=f"Request error: {e}")
+                # If not a timeout or max attempts reached, raise an HTTPException
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Request error after {attempt + 1} attempts: {e}",
+                )
 
-                except Exception as inner_e:
-                    logger.error(f"Unexpected exception during retry: {inner_e}")
-                    raise  # Re-raise the inner_e to propagate the error
-                
+            except Exception as e:
+                logger.error(f"Unexpected exception: {e}")
+                raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+
+            attempt += 1
+
+        raise HTTPException(status_code=500, detail="Max retry attempts reached")
+
     async def get(
         self,
-        endpoint: str,
+        endpoint: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
-        redis_client: Optional[redis.Redis] = None,
         headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
-        return await self._request("GET", endpoint, params, headers, redis_client)
+        return await self._request("GET", endpoint, params, headers)
 
     async def post(
         self,
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
-        redis_client: Optional[redis.Redis] = None,
         headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
-        return await self._request("POST", endpoint, data, headers, redis_client)
+        return await self._request("POST", endpoint, data, headers)
 
     async def close(self):
         await self.client.aclose()

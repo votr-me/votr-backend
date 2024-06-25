@@ -1,15 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
-from typing import List, Optional, Union, Any, Dict
-import logging
-from app.core.utilities import parse_geocodio_fields
 from app.core.dependencies import get_geocodio_client
 from app.core.logging_config import configure_logging
 from app.services import GeocodioAsyncAPIClient
-import redis.asyncio as redis
-from app.core.redis import get_redis_client
+from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi_cache.decorator import cache
 from fastapi_limiter.depends import RateLimiter
+from typing import List, Optional, Union, Any, Dict
 import httpx
-
+import logging
 
 router = APIRouter()
 
@@ -18,15 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_geocodio_data(
-    client: Optional[
-        Union[GeocodioAsyncAPIClient]
-    ],
+    client: Optional[Union[GeocodioAsyncAPIClient]],
     method: str,
-    redis_client: redis.Redis,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     try:
-        response = await getattr(client, method)(redis_client=redis_client, **kwargs)
+        response = await getattr(client, method)(**kwargs)
         return response
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
@@ -34,21 +28,25 @@ async def fetch_geocodio_data(
         raise HTTPException(status_code=400, detail=f"Invalid method: {method} - {e}")
 
 
-@router.get("/geolocate", status_code=200, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.get(
+    "/geolocate",
+    status_code=200,
+    dependencies=[Depends(RateLimiter(times=10, seconds=60))],
+)
+@cache(expire=3600)
 async def get_user_location_info(
-    background_tasks: BackgroundTasks,
     client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
     address: str = Query(..., description="The address to geolocate"),
-    fields: List[str] = Depends(parse_geocodio_fields),
-    redis_client: redis.Redis = Depends(get_redis_client),
+    fields: List[str] = Query(
+        ..., description="List of fields to return (e.g. stateleg, cd)"
+    ),
 ):
     try:
         geolocation_data = await fetch_geocodio_data(
             client=client,
-            method='geolocate',
-            redis_client=redis_client,
+            method="geolocate",
             address=address,
-            fields=fields
+            fields=fields,
         )
         return geolocation_data
     except HTTPException as e:
