@@ -1,7 +1,8 @@
 from functools import lru_cache
 from typing import Optional, Type, Union, ClassVar
 import pathlib
-from pydantic_settings import BaseSettings
+# from pydantic_settings import BaseSettings
+from pydantic import BaseSettings  
 
 # Define the root directory
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -32,7 +33,9 @@ class GlobalConfig(BaseConfig):
 
 class DevConfig(GlobalConfig):
     LOG_LVL: str = "DEBUG"
-    testing: bool = True
+    sting: bool = True
+    
+    DATABASE_URL: Optional[str] = None
     GOOGLE_API_KEY: Optional[str] = None
     GEOCODIO_API_KEY: Optional[str] = None
     CONGRESS_GOV_API_KEY: Optional[str] = None

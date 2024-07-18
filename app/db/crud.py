@@ -1,63 +1,54 @@
-from typing import TypeVar, Generic, List, Optional, Any
-from fastapi.encoders import jsonable_encoder
-
+from typing import TypeVar, Generic, List
+from fastapi import HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload  # Import for eager loading
 
-from app.db.models import Base  # Import your Base model
+ModelType = TypeVar("ModelType")
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
-ModelType = TypeVar("ModelType", bound=Base)
-
-
-class CRUDBase(Generic[ModelType]):
+class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: ModelType):
-        """
-        CRUD object with default methods to Create, Read, Update, Delete (CRUD).
-
-        **Parameters**
-
-        * `model`: A SQLAlchemy model class
-        """
         self.model = model
 
-    async def get(self, db: AsyncSession, id: Any) -> Optional[ModelType]:
-        result = await db.execute(select(self.model).filter(self.model.id == id))
+    async def get(self, db: AsyncSession, id: int, *, options=None) -> ModelType | None:
+        query = select(self.model).filter(self.model.id == id)
+        if options:  # Allow for customizable query options (e.g., eager loading)
+            query = query.options(*options)
+        result = await db.execute(query)
         return result.scalars().first()
 
     async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100
+        self, db: AsyncSession, *, skip: int = 0, limit: int = 100, options=None
     ) -> List[ModelType]:
-        result = await db.execute(select(self.model).offset(skip).limit(limit))
+        query = select(self.model).offset(skip).limit(limit)
+        if options:
+            query = query.options(*options)
+        result = await db.execute(query)
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, *, obj_in: dict) -> ModelType:
-        obj_in_data = jsonable_encoder(obj_in)
-        db_obj = self.model(**obj_in_data)  # type: ignore
+    async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
+        db_obj = self.model(**obj_in.dict())  # No need for intermediate dict
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
 
-    async def update(
-        self, db: AsyncSession, *, db_obj: ModelType, obj_in: dict
-    ) -> ModelType:
-        obj_data = jsonable_encoder(db_obj)
-        update_data = obj_in
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
+    async def update(self, db: AsyncSession, *, db_obj: ModelType, obj_in: UpdateSchemaType | dict) -> ModelType:
+        update_data = obj_in if isinstance(obj_in, dict) else obj_in.dict(exclude_unset=True)
+        for field, value in update_data.items():  # Iterate directly over update_data
+            setattr(db_obj, field, value)
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
 
     async def remove(self, db: AsyncSession, *, id: int) -> ModelType:
-        try:
-            obj = await db.execute(select(self.model).filter(self.model.id == id))
-            obj = obj.scalars().one()
-            await db.delete(obj)
-            await db.commit()
-            return obj
-        except NoResultFound:
-            return None
+        obj = await self.get(db, id)
+        if not obj:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Object not found")
+        await db.delete(obj)
+        await db.commit()
+        return obj

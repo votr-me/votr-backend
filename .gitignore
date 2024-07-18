@@ -171,3 +171,5 @@ logs/
 *.ruff_cache
 */logs/*
 .log
+
+.idea

@@ -70,7 +70,9 @@ class BaseAsyncAPIClient:
                     )
             except httpx.HTTPStatusError as e:
                 logger.error(f"HTTP error: {e}")
-                raise HTTPException(status_code=e.response.status_code, detail=str(e))
+                status_code = e.response.status_code if e.response else 500
+                detail = str(e) or "Unknown HTTP error"
+                return {"error": detail}, status_code  # Return error details and status
 
             except json.JSONDecodeError as e:
                 logger.error(f"JSON decode error: {e}")

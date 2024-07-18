@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import Callable, List, Any, Dict, Optional
+from numba import njit
 
 
 class SponsoredLegislation:
@@ -8,9 +9,9 @@ class SponsoredLegislation:
 
     def __init__(self, sponsored_legislation_response: dict) -> None:
         self._sponsored_legislation_response = sponsored_legislation_response
-        # self.sponsored_legislation_df = (
-        #     self._create_sponsored_legislation_df()
-        # )  # Initialize immediately
+        self.sponsored_legislation_df = (
+            self._create_sponsored_legislation_df()
+        )  # Initialize immediately
 
     """"
     TODO:
@@ -39,10 +40,6 @@ class SponsoredLegislation:
         """Initialize the DataFrame from the response data."""
         self.sponsored_legislation_df = await self._create_sponsored_legislation_df()
 
-    async def initialize(self):
-        """Initialize the DataFrame from the response data."""
-        self._sponsored_legislation_df = await self._create_sponsored_legislation_df()
-
     async def get_sponsored_legislation_by_congress(
         self, congress: int
     ) -> List[Dict[str, Any]]:
@@ -59,6 +56,57 @@ class SponsoredLegislation:
         result_df = df[df.policy_area == policy_area]
         return result_df.to_dict(orient="records")
 
+    async def filter_dataframe(self, dataframe: pd.DataFrame, **kwargs):
+        """Filters the provided DataFrame based on keyword arguments with comparison operators.
+
+        Args:
+            dataframe: The Pandas DataFrame to filter.
+            **kwargs: Filter conditions as keyword arguments (e.g., column_name__gt=value).
+
+        Supported operators:
+            * __eq: Equal to (default if no operator is provided)
+            * __ne: Not equal to
+            * __lt: Less than
+            * __le: Less than or equal to
+            * __gt: Greater than
+            * __ge: Greater than or equal to
+        """
+
+        filtered_df = dataframe.copy()
+
+        for filter_str, value in kwargs.items():
+            # Split the filter string to extract the column name and operator
+            col, operator = (filter_str.split("__") + ["eq"])[:2]
+
+            # Handle list values
+            if isinstance(value, list):
+                if operator in ("eq", "ne"):
+                    filtered_df = (
+                        filtered_df[filtered_df[col].isin(value)]
+                        if operator == "eq"
+                        else filtered_df[~filtered_df[col].isin(value)]
+                    )
+                else:
+                    raise ValueError(f"Invalid operator '{operator}' for list values")
+            else:
+                # Apply comparison based on operator
+                if operator == "eq":
+                    filtered_df = filtered_df[filtered_df[col] == value]
+                elif operator == "ne":
+                    filtered_df = filtered_df[filtered_df[col] != value]
+                elif operator == "lt":
+                    filtered_df = filtered_df[filtered_df[col] < value]
+                elif operator == "le":
+                    filtered_df = filtered_df[filtered_df[col] <= value]
+                elif operator == "gt":
+                    filtered_df = filtered_df[filtered_df[col] > value]
+                elif operator == "ge":
+                    filtered_df = filtered_df[filtered_df[col] >= value]
+                else:
+                    raise ValueError(f"Invalid operator '{operator}'")
+
+        return filtered_df
+
     async def aggregate_data_frame(
         self,
         dataframe: pd.DataFrame,
@@ -72,10 +120,7 @@ class SponsoredLegislation:
         """Aggregate data frame based on specified aggregation function."""
 
         if filter_conditions:
-            query_str = " & ".join(
-                [f"`{col}` == '{val}'" for col, val in filter_conditions.items()]
-            )
-            dataframe = dataframe.query(query_str)
+            dataframe = await self.filter_dataframe(dataframe, **filter_conditions)
 
         results = dataframe.groupby(aggregate_by, as_index=False)[agg_values].agg(
             agg_func, *args, **kwargs

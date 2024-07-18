@@ -192,8 +192,26 @@ pandas = "^2.2.2"
 polars = "^0.20.31"
 numpy = "^2.0.0"
 fastapi-cache2 = "^0.2.1"
-
+numba = "^0.60.0"
+alembic = "^1.13.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.alembic]
+script_location = "alembic"
+file_template = "%(rev)s_%(slug)s"
+sqlalchemy.url = "$DEV_DATABASE_URL"  # Replace with your actual connection string
+
+# Logging Configuration (Optional):
+[tool.alembic.logging]
+level = "INFO"  # Set the desired logging levela
+file = "alembic.log"  # Log to a file (optional)
+
+# Recommended Alembic Configuration Options:
+# Comma-separated list of version locations
+version_locations = ["alembic/versions"] 
+
+# Exclude tables that should not be managed by Alembic
+exclude_tables = ["spatial_ref_sys"]

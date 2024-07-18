@@ -117,16 +117,17 @@ async def get_cached_all_sponsored_legislation(
     if not cached_data:
         raise HTTPException(status_code=404, detail="Data not found in cache")
 
-    return json.loads(cached_data)
+    _sponsored_legislation = await SponsoredLegislation(
+        sponsored_legislation_response=json.loads(cached_data)
+    ).initialize()
+    return _sponsored_legislation
 
 
-@router.get("/congress/sponsored_legislation_summary")
+@router.get("/congress/sponsored_legislation_summary/")
 async def get_sponsored_legislation_summary(
     request: Request,
-    bioguideId: str = Query(..., description="bioguideId for legislator"),
-    offset: int = Query(0, description="index to start at"),
-    limit: int = Query(250, description="Number of bills to return at once (max 250)"),
+    congress: int = Query(..., description="Congress number for legislator"),
+    legislation_type: str = Query(..., description="Type of legislation"),
     analytics: SponsoredLegislation = Depends(get_cached_all_sponsored_legislation),
 ):
-    summary = analytics
-    return summary
+    return await analytics.get_sponsored_legislation_by_congress(congress)
