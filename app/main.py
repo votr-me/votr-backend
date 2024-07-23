@@ -9,12 +9,6 @@ from app.api.routes import api_router
 from app.core.config import config
 from app.core.logging_config import configure_logging
 from app.core.redis import redis_pool
-from app.services import (
-    open_secrets_async_client,
-    fec_async_client,
-    congress_async_api_client,
-    geocodio_async_client,
-)
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.middleware import is_valid_uuid4
 from contextlib import asynccontextmanager
@@ -62,27 +56,10 @@ async def lifespan(app: FastAPI):
     await FastAPILimiter.init(
         redis=await redis_pool.get_pool(), prefix="fastapi-limiter"
     )
-
-    congress_client = congress_async_api_client
-    base_client = fec_async_client
-    opensecrets_client = open_secrets_async_client
-    geocodio_client = geocodio_async_client
-
-    app.state.congress_client = congress_client
-    app.state.base_client = base_client
-    app.state.opensecrets_client = opensecrets_client
-    app.state.geocodio_client = geocodio_client
     app.state.redis_pool = redis_pool
-
     yield
-
     await FastAPILimiter.close()
     await redis_pool.stop()  # Close Redis connection pool
-    await congress_client.close()  # Replace with actual stop/cleanup method
-    await base_client.close()  # Replace with actual stop/cleanup method
-    await opensecrets_client.close()
-    await geocodio_client.close()
-
 
 app = FastAPI(
     name=config.APP_NAME,

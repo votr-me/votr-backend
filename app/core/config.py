@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Optional, Type, Union, ClassVar
 import pathlib
 # from pydantic_settings import BaseSettings
-from pydantic import BaseSettings  
+from pydantic_settings import BaseSettings  
 
 # Define the root directory
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
