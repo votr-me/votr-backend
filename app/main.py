@@ -1,19 +1,21 @@
+import logging
+from contextlib import asynccontextmanager
+from uuid import uuid4
+
+from asgi_correlation_id import CorrelationIdMiddleware
+from asgi_correlation_id.middleware import is_valid_uuid4
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.routes import api_router
 from app.core.config import config
 from app.core.logging_config import configure_logging
 from app.core.redis import redis_pool
-from asgi_correlation_id import CorrelationIdMiddleware
-from asgi_correlation_id.middleware import is_valid_uuid4
-from contextlib import asynccontextmanager
-from uuid import uuid4
-import logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -61,6 +63,7 @@ async def lifespan(app: FastAPI):
     await FastAPILimiter.close()
     await redis_pool.stop()  # Close Redis connection pool
 
+
 app = FastAPI(
     name=config.APP_NAME,
     description=config.PROJECT_DESCRIPTION,
@@ -90,7 +93,6 @@ app.add_middleware(
 @cache(expire=3600)  # Cache responses for 5 seconds
 async def example_endpoint():
     return {"message": "root"}
-
 
 @app.get("/debug/redis")
 async def debug_redis():

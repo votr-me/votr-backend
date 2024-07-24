@@ -1,12 +1,14 @@
-from app.core.dependencies import get_geocodio_client
-from app.core.logging_config import configure_logging
-from app.services import GeocodioAsyncAPIClient
+import logging
+from typing import List, Optional, Union, Any, Dict
+
+import httpx
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi_cache.decorator import cache
 from fastapi_limiter.depends import RateLimiter
-from typing import List, Optional, Union, Any, Dict
-import httpx
-import logging
+
+from app.core.dependencies import get_geocodio_client
+from app.core.logging_config import configure_logging
+from app.services import GeocodioAsyncAPIClient
 
 router = APIRouter()
 
@@ -15,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_geocodio_data(
-    client: Optional[Union[GeocodioAsyncAPIClient]],
-    method: str,
-    **kwargs: Any,
+        client: Optional[Union[GeocodioAsyncAPIClient]],
+        method: str,
+        **kwargs: Any,
 ) -> Dict[str, Any]:
     try:
         response = await getattr(client, method)(**kwargs)
@@ -35,11 +37,11 @@ async def fetch_geocodio_data(
 )
 @cache(expire=3600)
 async def get_user_location_info(
-    client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
-    address: str = Query(..., description="The address to geolocate"),
-    fields: List[str] = Query(
-        ..., description="List of fields to return (e.g. stateleg, cd)"
-    ),
+        client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
+        address: str = Query(..., description="The address to geolocate"),
+        fields: List[str] = Query(
+            ..., description="List of fields to return (e.g. stateleg, cd)"
+        ),
 ):
     try:
         geolocation_data = await fetch_geocodio_data(

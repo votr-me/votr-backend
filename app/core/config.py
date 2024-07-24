@@ -1,8 +1,8 @@
+import pathlib
 from functools import lru_cache
 from typing import Optional, Type, Union, ClassVar
-import pathlib
-# from pydantic_settings import BaseSettings
-from pydantic_settings import BaseSettings  
+
+from pydantic_settings import BaseSettings
 
 # Define the root directory
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -29,12 +29,13 @@ class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
     logs_directory: str = "app/logs"
+    testing: bool = False
 
 
 class DevConfig(GlobalConfig):
     LOG_LVL: str = "DEBUG"
     sting: bool = True
-    
+
     DATABASE_URL: Optional[str] = None
     GOOGLE_API_KEY: Optional[str] = None
     GEOCODIO_API_KEY: Optional[str] = None
@@ -68,7 +69,7 @@ class TestConfig(GlobalConfig):
 
 @lru_cache()
 def get_config(
-    env_state: Optional[str] = None,
+        env_state: Optional[str] = None,
 ) -> Union[DevConfig, ProdConfig, TestConfig]:
     """Instantiate and cache config based on the environment."""
     if env_state is None:

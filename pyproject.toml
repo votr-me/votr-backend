@@ -194,6 +194,7 @@ numpy = "^2.0.0"
 fastapi-cache2 = "^0.2.1"
 numba = "^0.60.0"
 alembic = "^1.13.2"
+greenlet = "^3.0.3"
 
 [build-system]
 requires = ["poetry-core"]

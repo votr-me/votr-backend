@@ -1,10 +1,12 @@
-from typing import Dict, Any, List
-from app.core.config import config
-from fastapi import HTTPException
-from .BaseAsyncAPIClient import BaseAsyncAPIClient
-from app.core.logging_config import configure_logging
 import logging
+from typing import Dict, Any, List
+
 import httpx
+from fastapi import HTTPException
+
+from app.core.config import config
+from app.core.logging_config import configure_logging
+from .BaseAsyncAPIClient import BaseAsyncAPIClient
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -12,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 class GeocodioAsyncAPIClient(BaseAsyncAPIClient):
     def __init__(
-        self,
-        api_key: str,
-        service_name: str,
-        api_key_name: str,
-        api_key_location: str = "query",
+            self,
+            api_key: str,
+            service_name: str,
+            api_key_name: str,
+            api_key_location: str = "query",
     ) -> None:
         base_url = config.GEOCODIO_BASE_URL
         super().__init__(

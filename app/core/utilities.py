@@ -1,10 +1,12 @@
-from typing import Any, Callable, Dict
-from fastapi import HTTPException, Query, Request
-from .constants import US_STATE_ABBREVIATIONS
 import datetime
 import hashlib
-from app.core.logging_config import configure_logging
 import logging
+from typing import Any, Callable, Dict
+
+from fastapi import HTTPException, Query, Request
+
+from app.core.logging_config import configure_logging
+from .constants import US_STATE_ABBREVIATIONS
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -56,11 +58,11 @@ def generate_param_hash(params: Dict) -> str:
 
 
 def custom_cache_key_generator(
-    prefix: str,
-    namespace: str,
-    identifier: str,
-    param_hash: str,
-    max_key_length: int = 200,
+        prefix: str,
+        namespace: str,
+        identifier: str,
+        param_hash: str,
+        max_key_length: int = 200,
 ) -> str:
     key_parts = [prefix, namespace, identifier, param_hash]
     full_key = ":".join(str(part) for part in key_parts if part)

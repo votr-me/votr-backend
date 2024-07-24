@@ -1,11 +1,13 @@
 from fastapi import BackgroundTasks
+
+from app.core.config import config
 from app.services import (
     GeocodioAsyncAPIClient,
 )
-from app.core.config import config
+
 
 async def get_geocodio_client(
-    background_tasks: BackgroundTasks,
+        background_tasks: BackgroundTasks,
 ) -> GeocodioAsyncAPIClient:
     client = GeocodioAsyncAPIClient(
         api_key=config.GEOCODIO_API_KEY,
