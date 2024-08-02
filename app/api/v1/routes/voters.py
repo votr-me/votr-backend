@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 async def fetch_geocodio_data(
-        client: Optional[Union[GeocodioAsyncAPIClient]],
-        method: str,
-        **kwargs: Any,
+    client: Optional[Union[GeocodioAsyncAPIClient]],
+    method: str,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     try:
         response = await getattr(client, method)(**kwargs)
@@ -37,11 +37,11 @@ async def fetch_geocodio_data(
 )
 @cache(expire=3600)
 async def get_user_location_info(
-        client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
-        address: str = Query(..., description="The address to geolocate"),
-        fields: List[str] = Query(
-            ..., description="List of fields to return (e.g. stateleg, cd)"
-        ),
+    client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
+    address: str = Query(..., description="The address to geolocate"),
+    fields: List[str] = Query(
+        ..., description="List of fields to return (e.g. stateleg, cd)"
+    ),
 ):
     try:
         geolocation_data = await fetch_geocodio_data(

@@ -58,11 +58,11 @@ def generate_param_hash(params: Dict) -> str:
 
 
 def custom_cache_key_generator(
-        prefix: str,
-        namespace: str,
-        identifier: str,
-        param_hash: str,
-        max_key_length: int = 200,
+    prefix: str,
+    namespace: str,
+    identifier: str,
+    param_hash: str,
+    max_key_length: int = 200,
 ) -> str:
     key_parts = [prefix, namespace, identifier, param_hash]
     full_key = ":".join(str(part) for part in key_parts if part)

@@ -48,12 +48,12 @@ def configure_logging() -> None:
                 "file": {
                     "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
                     "datefmt": "%Y-%m-%dT%H:%M:%S",
-                    "format": "%(asctime)s %(msecs)03d %(levellevel)s %(correlation_id)s %(name)s %(lineno)d %(message)s",
+                    "format": "%(asctime)s %(msecs)03d %(levelname)s %(correlation_id)s %(name)s %(lineno)d %(message)s",
                 },
                 "web": {
                     "class": "logging.Formatter",
                     "datefmt": "%H:%M:%S",
-                    "format": "%(asctime)s %(msecs)03d %(levellevel)s [%(correlation_id)s] %(name)s %(lineno)d %(message)s",
+                    "format": "%(asctime)s %(msecs)03d %(levelname)s [%(correlation_id)s] %(name)s %(lineno)d %(message)s",
                 },
             },
             "handlers": {
@@ -90,6 +90,16 @@ def configure_logging() -> None:
                     "handlers": handlers,
                     "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
                     "propagate": True,
+                },
+                "sqlalchemy.engine": {
+                    "handlers": handlers,
+                    "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
+                    "propagate": False,
+                },
+                "sqlalchemy.pool": {
+                    "handlers": handlers,
+                    "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
+                    "propagate": False,
                 },
             },
         }

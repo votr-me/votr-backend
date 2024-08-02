@@ -1,6 +1,3 @@
-from .congress_members import CongressMemberBase, CongressMemberOut
+from .congress_members import CongressMemberSchema, CongressMemberTermsSchema, CongressMemberSponsoredBillsSchema
 
-__all__ = [
-    'CongressMemberOut',
-    'CongressMemberBase'
-]
+__all__ = ["CongressMemberSchema", "CongressMemberSponsoredBillsSchema","CongressMemberSchema"]

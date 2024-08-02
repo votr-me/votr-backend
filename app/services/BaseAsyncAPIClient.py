@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 class BaseAsyncAPIClient:
     def __init__(
-            self,
-            service_name: str,
-            base_url: str,
-            api_key: Optional[str] = None,
-            api_key_name: str = "apikey",
-            api_key_location: str = "header",
-            retry_attempts: int = 3,
-            retry_delay: int = 2,  # Delay in seconds
+        self,
+        service_name: str,
+        base_url: str,
+        api_key: Optional[str] = None,
+        api_key_name: str = "apikey",
+        api_key_location: str = "header",
+        retry_attempts: int = 3,
+        retry_delay: int = 2,  # Delay in seconds
     ) -> None:
         self.service_name = service_name
         self.base_url = base_url
@@ -34,11 +34,11 @@ class BaseAsyncAPIClient:
         # self.cache_key = None
 
     async def _request(
-            self,
-            method: str,
-            endpoint: Optional[str] = None,
-            params: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str, str]] = None,
+        self,
+        method: str,
+        endpoint: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         if endpoint.startswith("http"):
             url = endpoint
@@ -85,8 +85,8 @@ class BaseAsyncAPIClient:
             except httpx.RequestError as e:
                 logger.error(f"Request error (attempt {attempt + 1}): {e}")
                 if (
-                        isinstance(e, httpx.TimeoutException)
-                        and attempt < self.retry_attempts - 1
+                    isinstance(e, httpx.TimeoutException)
+                    and attempt < self.retry_attempts - 1
                 ):
                     attempt += 1
                     await asyncio.sleep(self.retry_delay)
@@ -107,18 +107,18 @@ class BaseAsyncAPIClient:
         raise HTTPException(status_code=500, detail="Max retry attempts reached")
 
     async def get(
-            self,
-            endpoint: Optional[str] = None,
-            params: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str, str]] = None,
+        self,
+        endpoint: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         return await self._request("GET", endpoint, params, headers)
 
     async def post(
-            self,
-            endpoint: str,
-            data: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str, str]] = None,
+        self,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         return await self._request("POST", endpoint, data, headers)
 

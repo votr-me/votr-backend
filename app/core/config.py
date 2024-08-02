@@ -14,9 +14,6 @@ class BaseConfig(BaseSettings):
     ENV_STATE: Optional[str] = None
     PROJECT_DESCRIPTION: Optional[str] = None
     api_v1_str: str = "/api/v1"
-    BASE_URL_CONGRESS_API: ClassVar[str] = "https://api.congress.gov/v3/"
-    BASE_URL_OPENSECRETS_API: ClassVar[str] = "https://www.opensecrets.org/api/"
-    FEC_BASE_URL: ClassVar[str] = "https://api.open.fec.gov/v1/"
     GEOCODIO_BASE_URL: ClassVar[str] = "https://api.geocod.io/v1.7/"
     CACHE_TTL: Optional[int] = 3600
 
@@ -27,6 +24,7 @@ class BaseConfig(BaseSettings):
 
 class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
+    SYNC_DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
     logs_directory: str = "app/logs"
     testing: bool = False
@@ -69,7 +67,7 @@ class TestConfig(GlobalConfig):
 
 @lru_cache()
 def get_config(
-        env_state: Optional[str] = None,
+    env_state: Optional[str] = None,
 ) -> Union[DevConfig, ProdConfig, TestConfig]:
     """Instantiate and cache config based on the environment."""
     if env_state is None:

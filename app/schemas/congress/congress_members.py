@@ -1,45 +1,71 @@
+from pydantic import BaseModel, Field
 from datetime import date
-from typing import Optional, List
+from typing import List, Optional, Union
 
-from pydantic import BaseModel, field_validator, Field
+def convert_date_to_string(dt: date) -> str:
+    return dt.isoformat()
 
-
-class CongressMemberBase(BaseModel):
-    bioguide_id: str = Field(..., description="Bioguide ID of the congress member", example="A000376")
-    member_age: int = Field(..., description="Current age of Member", example='50'),
-    is_current_member: bool = Field(default=True, description="Indicates if the member is currently serving")
-    birthday: date = Field(..., description="Congress member's birthday")
-    member_age: Optional[int] = Field(None, description="Age of the congress member (derived from birthday)", ge=25, le=120)  # Assuming min/max ages
-    last_name: str = Field(..., description="Last name of the congress member", example="Smith")
-    first_name: str = Field(..., description="First name of the congress member", example="John")
-    middle_name: Optional[str] = Field(None, description="Middle name of the congress member")
-    suffix: Optional[str] = Field(None, description="Suffix of the congress member (e.g., Jr., Sr.)")
-    member_party: str = Field(..., description="Political party affiliation (e.g., Democrat, Republican)", example="Republican")
-    member_state: str = Field(..., description="State represented by the congress member", example="CA")
-    member_district: Optional[int] = Field(None, description="District represented (if applicable)", ge=1)
-    member_type: str = Field(..., description="Type of member (e.g., Rep, Sen)", example="Rep")
-    member_title: str = Field(..., description="Formal title (e.g., Representative, Senator)", example="Representative")
-    depiction_image_url: Optional[str] = Field(None, description="URL of the congress member's image")
-    depiction_attribution: Optional[str] = Field(None, description="Attribution for the image (if applicable)")
-    address: Optional[str] = Field(None, description="Congress member's address")
-    office_phone_number: Optional[str] = Field(None, description="Congress member's office phone number")
-    contact_form: Optional[str] = Field(None, description="URL of the congress member's contact form")
-    office_address: Optional[str] = Field(None, description="Address of the congress member's office")
-    office_city: Optional[str] = Field(None, description="City of the congress member's office")
-    office_zipcode: Optional[int] = Field(None, description="ZIP code of the congress member's office")
-    official_website_url: Optional[str] = Field(None, description="URL of the congress member's official website")
-    thomas_id: Optional[str] = Field(None, description="Thomas ID of the congress member")
-    opensecrets_id: Optional[str] = Field(None, description="OpenSecrets ID of the congress member")
-    lis_id: Optional[str] = Field(None, description="LIS ID of the congress member")
-    govtrack_id: Optional[str] = Field(None, description="GovTrack ID of the congress member")
-    votesmart_id: Optional[str] = Field(None, description="VoteSmart ID of the congress member")
-    ballotpedia_id: Optional[str] = Field(None, description="Ballotpedia ID of the congress member")
-    icpsr_id: Optional[str] = Field(None, description="ICPSR ID of the congress member")
-    wikipedia_id: Optional[str] = Field(None, description="Wikipedia ID of the congress member")
-    fec_ids: Optional[List[str]] = Field(None, description="List of FEC IDs of the congress member")
-
-class CongressMemberOut(CongressMemberBase):
-    pass
+class CongressMemberSchema(BaseModel):
+    bioguideId: str = Field(..., alias="bioguide_id")  
+    isCurrentMember: bool = Field(..., alias="is_current_member")
+    birthday: date = Field(..., json_encoders={date: convert_date_to_string}),
+    memberAge: Optional[float] = Field(None, alias="member_age")
+    lastName: str = Field(..., alias="last_name")
+    firstName: str = Field(..., alias="first_name")
+    middleName: Optional[str] = Field(None, alias="middle_name")
+    suffix: Optional[str]
+    memberParty: str = Field(..., alias="member_party")
+    memberState: str = Field(..., alias="member_state")
+    memberDistrict: Optional[Union[int, float]] = Field(None, alias="member_district")  # Handle float or missing
+    memberType: str = Field(..., alias="member_type")
+    memberTitle: str = Field(..., alias="member_title")
+    depictionImageUrl: Optional[str] = Field(None, alias="depiction_image_url")
+    depictionAttribution: Optional[str] = Field(None, alias="depiction_attribution")
+    leadershipTitles: Optional[List[str]] = Field(None, alias="leadership_titles")
+    address: Optional[str]
+    officePhoneNumber: Optional[str] = Field(None, alias="office_phone_number")
+    contactForm: Optional[str] = Field(None, alias="contact_form")
+    officeAddress: Optional[str] = Field(None, alias="office_address")
+    officeCity: Optional[str] = Field(None, alias="office_city")
+    officeZipcode: Optional[int] = Field(None, alias="office_zipcode")
+    officialWebsiteUrl: Optional[str] = Field(None, alias="official_website_url")
+    thomasId: Optional[str] = Field(None, alias="thomas_id")
+    opensecretsId: Optional[str] = Field(None, alias="opensecrets_id")
+    lisId: Optional[str] = Field(None, alias="lis_id")
+    govtrackId: Optional[str] = Field(None, alias="govtrack_id")
+    votesmartId: Optional[str] = Field(None, alias="votesmart_id")
+    ballotpediaId: Optional[str] = Field(None, alias="ballotpedia_id")
+    icpsrId: Optional[str] = Field(None, alias="icpsr_id")
+    wikipediaId: Optional[str] = Field(None, alias="wikipedia_id")
+    fecIds: Optional[List[str]] = Field(None, alias="fec_ids")
 
     class Config:
+        populate_by_name = True  
+        from_attributes = True   
+
+class CongressMemberSponsoredBillsSchema(BaseModel):
+    bioguideId: str = Field(..., alias="bioguide_id")
+    congress: int = Field(..., alias="congress")
+    policy_area_name: str = Field(..., alias="policy_area_name")
+    numBillsSponsored: int = Field(..., alias="num_bills_sponsored")
+    numBillsCosponsored: int = Field(..., alias="num_bills_cosponsored")
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+
+class CongressMemberTermsSchema(BaseModel):
+    bioguideId: str = Field(..., alias="bioguide_id")
+    isCurrentMember: bool = Field(..., alias="is_current_member")
+    chamber: str
+    memberType: str = Field(..., alias="member_type")
+    congress: str  
+    stateCode: str = Field(..., alias="state_code")
+    stateName: str = Field(..., alias="state_name")
+    district: Optional[str]  # Districts can be None for Senators
+    startYear: int = Field(..., alias="start_year")
+    endYear: int = Field(..., alias="end_year")
+
+    class Config:
+        populate_by_name = True
         from_attributes = True

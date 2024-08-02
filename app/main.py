@@ -4,39 +4,19 @@ from uuid import uuid4
 
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.middleware import is_valid_uuid4
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from fastapi_cache.decorator import cache
-from fastapi_limiter import FastAPILimiter
-from fastapi_limiter.depends import RateLimiter
-
 from app.api.routes import api_router
 from app.core.config import config
 from app.core.logging_config import configure_logging
 from app.core.redis import redis_pool
+from strawberry.fastapi import GraphQLRouter
+from app.graphql.schema import schema
+from app.db.database import init_db
+
 
 configure_logging()
 logger = logging.getLogger(__name__)
-custom_callback = None
-
-
-class DebugRedisBackend(RedisBackend):
-    async def get(self, key: str):
-        value = await super().get(key)
-        logger.debug(f"Cache GET: {key} -> {'Hit' if value else 'Miss'}")
-        return value
-
-    async def set(self, key: str, value: str, expire: int = None):
-        await super().set(key, value, expire)
-        if len(key) > 200:  # Assuming 200 is the max length for your cache keys
-            logger.debug(f"Cache SET (Hashed Key): {key} (Expire: {expire}s)")
-        else:
-            logger.debug(f"Cache SET: {key} (Expire: {expire}s)")
-
-        return value
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,16 +31,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Redis connection test failed: {e}")
 
-    FastAPICache.init(DebugRedisBackend(redis_client), prefix="fastapi-cache")
-
-    # FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
-
-    await FastAPILimiter.init(
-        redis=await redis_pool.get_pool(), prefix="fastapi-limiter"
-    )
     app.state.redis_pool = redis_pool
+    
+    await init_db()
+
     yield
-    await FastAPILimiter.close()
+
     await redis_pool.stop()  # Close Redis connection pool
 
 
@@ -70,6 +46,8 @@ app = FastAPI(
     version=config.PROJECT_VERSION,
     lifespan=lifespan,
 )
+
+graphql_app = GraphQLRouter(schema)
 
 app.add_middleware(
     CorrelationIdMiddleware,
@@ -89,27 +67,13 @@ app.add_middleware(
 )
 
 
-@app.get("/", dependencies=[Depends(RateLimiter(times=100, seconds=60))])
-@cache(expire=3600)  # Cache responses for 5 seconds
+@app.get("/")
 async def example_endpoint():
     return {"message": "root"}
 
-@app.get("/debug/redis")
-async def debug_redis():
-    redis = await redis_pool.get_pool()
-    await redis.set("test_key", "test_value")
-    value = await redis.get("test_key")
-    return {"redis_test": value}
-
-
-@app.get("/debug/redis-keys")
-async def debug_redis_keys():
-    redis_client = await redis_pool.get_pool()
-    keys = await redis_client.keys("fastapi-cache:*")
-    return {"cache_keys": keys}
-
 
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(graphql_app, prefix="/graphql")
 
 if __name__ == "__main__":
     import uvicorn

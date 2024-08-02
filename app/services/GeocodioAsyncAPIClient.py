@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 class GeocodioAsyncAPIClient(BaseAsyncAPIClient):
     def __init__(
-            self,
-            api_key: str,
-            service_name: str,
-            api_key_name: str,
-            api_key_location: str = "query",
+        self,
+        api_key: str,
+        service_name: str,
+        api_key_name: str,
+        api_key_location: str = "query",
     ) -> None:
         base_url = config.GEOCODIO_BASE_URL
         super().__init__(
