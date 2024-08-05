@@ -2,13 +2,15 @@ from pydantic import BaseModel, Field
 from datetime import date
 from typing import List, Optional, Union
 
+
 def convert_date_to_string(dt: date) -> str:
     return dt.isoformat()
 
+
 class CongressMemberSchema(BaseModel):
-    bioguideId: str = Field(..., alias="bioguide_id")  
+    bioguideId: str = Field(..., alias="bioguide_id")
     isCurrentMember: bool = Field(..., alias="is_current_member")
-    birthday: date = Field(..., json_encoders={date: convert_date_to_string}),
+    birthday: date = (Field(..., json_encoders={date: convert_date_to_string}),)
     memberAge: Optional[float] = Field(None, alias="member_age")
     lastName: str = Field(..., alias="last_name")
     firstName: str = Field(..., alias="first_name")
@@ -16,7 +18,9 @@ class CongressMemberSchema(BaseModel):
     suffix: Optional[str]
     memberParty: str = Field(..., alias="member_party")
     memberState: str = Field(..., alias="member_state")
-    memberDistrict: Optional[Union[int, float]] = Field(None, alias="member_district")  # Handle float or missing
+    memberDistrict: Optional[Union[int, float]] = Field(
+        None, alias="member_district"
+    )  # Handle float or missing
     memberType: str = Field(..., alias="member_type")
     memberTitle: str = Field(..., alias="member_title")
     depictionImageUrl: Optional[str] = Field(None, alias="depiction_image_url")
@@ -40,8 +44,9 @@ class CongressMemberSchema(BaseModel):
     fecIds: Optional[List[str]] = Field(None, alias="fec_ids")
 
     class Config:
-        populate_by_name = True  
-        from_attributes = True   
+        populate_by_name = True
+        from_attributes = True
+
 
 class CongressMemberSponsoredBillsSchema(BaseModel):
     bioguideId: str = Field(..., alias="bioguide_id")
@@ -49,6 +54,7 @@ class CongressMemberSponsoredBillsSchema(BaseModel):
     policy_area_name: str = Field(..., alias="policy_area_name")
     numBillsSponsored: int = Field(..., alias="num_bills_sponsored")
     numBillsCosponsored: int = Field(..., alias="num_bills_cosponsored")
+
     class Config:
         populate_by_name = True
         from_attributes = True
@@ -59,7 +65,7 @@ class CongressMemberTermsSchema(BaseModel):
     isCurrentMember: bool = Field(..., alias="is_current_member")
     chamber: str
     memberType: str = Field(..., alias="member_type")
-    congress: str  
+    congress: str
     stateCode: str = Field(..., alias="state_code")
     stateName: str = Field(..., alias="state_name")
     district: Optional[str]  # Districts can be None for Senators

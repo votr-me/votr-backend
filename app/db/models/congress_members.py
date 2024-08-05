@@ -1,13 +1,12 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date, Text, ARRAY, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Boolean, Date, ARRAY, Float
 from sqlalchemy.dialects.postgresql import JSON, ARRAY
-from sqlalchemy.orm import relationship
 
 from .base_model import BaseModel
 
 
 class CongressMember(BaseModel):
-    __tablename__ = 'congress_members_historical'
-    
+    __tablename__ = "congress_members_historical"
+
     bioguide_id = Column(String, primary_key=True, index=True)
     is_current_member = Column(Boolean)
     birthday = Column(Date)
@@ -39,12 +38,12 @@ class CongressMember(BaseModel):
     ballotpedia_id = Column(String)
     icpsr_id = Column(String)
     wikipedia_id = Column(String)
-    fec_ids = Column(ARRAY(String))    
+    fec_ids = Column(ARRAY(String))
 
 
 class CongressMemberSponsoredBills(BaseModel):
-    __tablename__ = 'member_legislation_activity_cong_policy_area_historical'
-    
+    __tablename__ = "member_legislation_activity_cong_policy_area_historical"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioguide_id = Column(String)
     congress = Column(Integer)
@@ -52,9 +51,10 @@ class CongressMemberSponsoredBills(BaseModel):
     num_bills_sponsored = Column(String)
     num_bills_cosponsored = Column(Integer)
 
+
 class CongressMemberTerms(BaseModel):
-    __tablename__ = 'dim_congress_member_terms_historical'
-    
+    __tablename__ = "dim_congress_member_terms_historical"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioguide_id = Column(String)
     is_current_member = Column(Boolean)

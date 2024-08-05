@@ -1,10 +1,12 @@
 import strawberry
 
+
 @strawberry.type
 class Query:
     @strawberry.field
     def helloWorld(self) -> str:
         return "Hello, world!"
+
     # async def congress_member_with_details(
     #     self,
     #     bioguide_id: str,

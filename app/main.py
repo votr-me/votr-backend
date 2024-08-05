@@ -18,6 +18,7 @@ from app.db.database import init_db
 configure_logging()
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await redis_pool.start()
@@ -32,7 +33,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"Redis connection test failed: {e}")
 
     app.state.redis_pool = redis_pool
-    
+
     await init_db()
 
     yield
