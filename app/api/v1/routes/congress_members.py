@@ -81,8 +81,6 @@ async def read_congress_member(
                 db, bioguide_id=bioguide_id
             )
         )
-
-        logger.debug(db_congress_member_sponsorship_record.json())
         # db_congress_member_terms = await crud.get_congress_member_terms(db, bioguide_id=bioguide_id)
 
         if db_congress_member is None:

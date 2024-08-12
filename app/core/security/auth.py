@@ -4,7 +4,7 @@ from typing import Dict
 import argon2
 from fastapi import Security, HTTPException, status
 from fastapi.security import APIKeyHeader
-from app.schemas.security import APIKeyCreate
+from app.schemas.security.security import APIKeyCreate
 import secrets
 import os
 

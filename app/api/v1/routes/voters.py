@@ -3,7 +3,6 @@ from typing import List, Optional, Union, Any, Dict
 
 import httpx
 from fastapi import APIRouter, HTTPException, Depends, Query
-from fastapi_cache.decorator import cache
 from fastapi_limiter.depends import RateLimiter
 
 from app.core.dependencies import get_geocodio_client
@@ -35,7 +34,6 @@ async def fetch_geocodio_data(
     status_code=200,
     dependencies=[Depends(RateLimiter(times=10, seconds=60))],
 )
-@cache(expire=3600)
 async def get_user_location_info(
     client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
     address: str = Query(..., description="The address to geolocate"),

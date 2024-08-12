@@ -1,4 +1,4 @@
 import strawberry
-from app.graphql.resolvers.congress_member_resolver import Query
+from app.graphql.resolvers import Query
 
 schema = strawberry.Schema(query=Query)

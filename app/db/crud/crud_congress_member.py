@@ -17,7 +17,7 @@ class CongressMemberCRUD(CRUDBase[CongressMember]):
         )
 
         result = await db.execute(query)
-        return result.scalars().first()
+        return result.scalars().all()
 
     async def get_congress_member_sponsorship_record(
         self, db: AsyncSession, bioguide_id: str
@@ -27,4 +27,4 @@ class CongressMemberCRUD(CRUDBase[CongressMember]):
         )
 
         result = await db.execute(query)
-        return result.scalars().first()
+        return result.scalars().all()

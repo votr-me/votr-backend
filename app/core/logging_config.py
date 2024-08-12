@@ -101,6 +101,11 @@ def configure_logging() -> None:
                     "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
                     "propagate": False,
                 },
+                "graphql": {  # New logger for GraphQL
+                    "handlers": handlers,
+                    "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
+                    "propagate": True,
+                },
             },
         }
     )

@@ -1,6 +1,11 @@
 from fastapi import APIRouter
 
-from app.api.v1.routes import voters_router, elections_router, legislators_router, census_router
+from app.api.v1.routes import (
+    voters_router,
+    elections_router,
+    legislators_router,
+    census_router,
+)
 
 
 api_router = APIRouter()

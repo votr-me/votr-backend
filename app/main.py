@@ -13,6 +13,11 @@ from app.core.redis import redis_pool
 from strawberry.fastapi import GraphQLRouter
 from app.graphql.schema import schema
 from app.db.database import init_db
+from app.db.session import get_db
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.redis import get_redis_pool, RedisPool
+from fastapi_limiter import FastAPILimiter
 
 
 configure_logging()
@@ -23,22 +28,21 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     await redis_pool.start()
     redis_client = await redis_pool.get_pool()
-
-    # Test Redis connection
-    try:
-        await redis_client.set("test_key", "test_value")
-        test_value = await redis_client.get("test_key")
-        logger.info(f"Redis test: {test_value}")
-    except Exception as e:
-        logger.error(f"Redis connection test failed: {e}")
-
     app.state.redis_pool = redis_pool
 
     await init_db()
 
+    await FastAPILimiter.init(redis_client)
+
     yield
 
     await redis_pool.stop()  # Close Redis connection pool
+
+
+async def get_context(
+    db: AsyncSession = Depends(get_db), redis: RedisPool = Depends(get_redis_pool)
+):
+    return {"db": db, "redis": redis}
 
 
 app = FastAPI(
@@ -48,7 +52,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-graphql_app = GraphQLRouter(schema)
+graphql_app = GraphQLRouter(schema, context_getter=get_context)
 
 app.add_middleware(
     CorrelationIdMiddleware,

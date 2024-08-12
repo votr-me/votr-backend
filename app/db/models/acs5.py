@@ -9,7 +9,7 @@ from .base_model import BaseModel
 
 class ACS5Demographics(BaseModel):
     __tablename__ = "acs5_demographics_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     state_fip = Column(String)
@@ -79,7 +79,7 @@ class ACS5Demographics(BaseModel):
 
 class ACS5Employment(BaseModel):
     __tablename__ = "acs5_employment_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     state_fip = Column(String)
@@ -116,7 +116,7 @@ class ACS5Employment(BaseModel):
 
 class ACS5Income(BaseModel):
     __tablename__ = "acs5_income_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     congressional_district = Column(String)
@@ -227,4 +227,3 @@ class ACS5Income(BaseModel):
     us_hh_income_200k_or_more = Column(Float)
     us_pct_hh_income_200k_or_more = Column(Float)
     us_median_family_income = Column(Float)
-

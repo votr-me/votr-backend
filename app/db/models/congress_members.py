@@ -17,7 +17,7 @@ class CongressMember(BaseModel):
     suffix = Column(String)
     member_party = Column(String)
     member_state = Column(String)
-    member_district = Column(Float)
+    member_district = Column(String)
     member_type = Column(String)
     member_title = Column(String)
     depiction_image_url = Column(String)
@@ -42,20 +42,22 @@ class CongressMember(BaseModel):
 
 
 class CongressMemberSponsoredBills(BaseModel):
-    __tablename__ = "member_legislation_activity_cong_policy_area_historical"
+    __tablename__ = "congress_member_sponsor_congress_policy_area_historical"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String, primary_key=True)
     bioguide_id = Column(String)
-    congress = Column(Integer)
     policy_area_name = Column(String)
-    num_bills_sponsored = Column(String)
-    num_bills_cosponsored = Column(Integer)
+    sponsorship_type = Column(String)
+    congress = Column(Integer)
+    num_total_bills = Column(Integer)
+    num_bills_by_policy_area = Column(Integer)
+    pct_of_total_bills = Column(Float)
 
 
 class CongressMemberTerms(BaseModel):
     __tablename__ = "dim_congress_member_terms_historical"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     bioguide_id = Column(String)
     is_current_member = Column(Boolean)
     chamber = Column(String)

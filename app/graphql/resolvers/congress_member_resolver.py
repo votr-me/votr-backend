@@ -1,32 +1,52 @@
 import strawberry
+from typing import List, Optional
+import logging
+from app.services import CongressMemberService
+from app.graphql.types.congress_member import (
+    CongressMemberDetails,
+    CongressMember,
+    CongressMemberTerms,
+    CongressMemberSponsoredBills,
+)
+from fastapi import HTTPException
+from app.core.logging_config import configure_logging
 
+configure_logging()
+logger = logging.getLogger(__name__)
 
 @strawberry.type
 class Query:
     @strawberry.field
-    def helloWorld(self) -> str:
-        return "Hello, world!"
+    async def get_congress_members_info(
+        self, bioguide_ids: List[str], info
+    ) -> List[Optional[CongressMemberDetails]]:
+        if not bioguide_ids:
+            logger.warning("No bioguide_ids provided.")
+            raise HTTPException(status_code=400, detail="No bioguide_ids provided")
 
-    # async def congress_member_with_details(
-    #     self,
-    #     bioguide_id: str,
-    #     db: AsyncSession = Depends(get_db)
-    # ) -> CongressMemberDetails:
-    #     db_congress_member = await get_by_bioguide_id(db, bioguide_id=bioguide_id)
-    #     if db_congress_member is None:
-    #         raise HTTPException(status_code=404, detail="CongressMember not found")
+        service = CongressMemberService(db=info.context["db"], redis=info.context["redis"])
 
-    #     db_terms = await get_terms_by_bioguide_id(db, bioguide_id=bioguide_id)
-    #     db_sponsored_bills = await get_sponsored_bills_by_bioguide_id(db, bioguide_id=bioguide_id)
-    #     db_demographics = await get_acs5_demographics(db, member_district=db_congress_member.member_district, member_state=db_congress_member.member_state)
-    #     db_employment = await get_acs5_employment(db, member_district=db_congress_member.member_district, member_state=db_congress_member.member_state)
-    #     db_income = await get_acs5_income(db, member_district=db_congress_member.member_district, member_state=db_congress_member.member_state)
+        results = []
+        try:
+            for bioguide_id in bioguide_ids:
+                result_data = await service.get_congress_member_info(bioguide_id)
+                member_details = CongressMemberDetails(
+                    congress_member=CongressMember(**result_data["congress_member"]),
+                    terms=[
+                        CongressMemberTerms(**term) for term in result_data["terms"]
+                    ],
+                    sponsored_bills=[
+                        CongressMemberSponsoredBills(**bill)
+                        for bill in result_data["sponsored_bills"]
+                    ],
+                )
+                results.append(member_details)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            logger.error(
+                f"Error fetching congress members with bioguide_ids {bioguide_ids}: {str(e)}"
+            )
+            raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    #     return CongressMemberDetails(
-    #         congress_member=CongressMember.from_pydantic(db_congress_member),
-    #         terms=[CongressMemberTerms.from_pydantic(term) for term in db_terms],
-    #         sponsored_bills=[CongressMemberSponsoredBills.from_pydantic(bill) for bill in db_sponsored_bills],
-    #         demographics=ACS5Demographics.from_pydantic(db_demographics),
-    #         employment=ACS5Employment.from_pydantic(db_employment),
-    #         income=ACS5Income.from_pydantic(db_income)
-    #     )
+        return results
