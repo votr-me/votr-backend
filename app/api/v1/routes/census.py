@@ -60,7 +60,7 @@ async def read_acs5_demographics_data(
 
         state_district_demos_db = (
             await ACS5CRUD().get_congerssional_district_asc5_demographics(
-                db=db, district_num=district_num, state_district_num=state_fips
+                db=db, district_num=district_num, state_fip=state_fips
             )
         )
 
@@ -130,7 +130,7 @@ async def read_acs5_employment_data(
 
         state_district_employment_db = (
             await ACS5CRUD().get_congerssional_district_asc5_employment(
-                db=db, district_num=district_num, state_district_num=state_fips
+                db=db, district_num=district_num, state_fips=state_fips
             )
         )
 
@@ -201,7 +201,7 @@ async def read_acs5_employment_data(
 
         state_district_income_db = (
             await ACS5CRUD().get_congerssional_district_asc5_income(
-                db=db, district_num=district_num, state_district_num=state_fips
+                db=db, district_num=district_num, state_fips=state_fips
             )
         )
 
