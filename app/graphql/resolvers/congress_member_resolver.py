@@ -9,10 +9,13 @@ from app.graphql.types.congress_member import (
     CongressMemberSponsoredBills,
 )
 from fastapi import HTTPException
+
 from app.core.logging_config import configure_logging
 
+
 configure_logging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
+
 
 @strawberry.type
 class Query:
@@ -24,12 +27,18 @@ class Query:
             logger.warning("No bioguide_ids provided.")
             raise HTTPException(status_code=400, detail="No bioguide_ids provided")
 
-        service = CongressMemberService(db=info.context["db"], redis=info.context["redis"])
+        # Initialize the CongressMemberService
+        service = CongressMemberService(
+            db=info.context["db"], redis=info.context["redis"]
+        )
 
         results = []
         try:
             for bioguide_id in bioguide_ids:
+                # Fetch congress member info using the service
                 result_data = await service.get_congress_member_info(bioguide_id)
+
+                # Transform the result data into the expected GraphQL type
                 member_details = CongressMemberDetails(
                     congress_member=CongressMember(**result_data["congress_member"]),
                     terms=[

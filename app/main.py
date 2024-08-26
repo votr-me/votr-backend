@@ -8,39 +8,39 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import api_router
 from app.core.config import config
-from app.core.logging_config import configure_logging
 from app.core.redis import redis_pool
 from strawberry.fastapi import GraphQLRouter
 from app.graphql.schema import schema
-from app.db.database import init_db
-from app.db.session import get_db
+from app.db.database import init_db, close_db
+from app.db.session import get_session
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.redis import get_redis_pool, RedisPool
-from fastapi_limiter import FastAPILimiter
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from app.core.logging_config import configure_logging
 
 
 configure_logging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await redis_pool.start()
     redis_client = await redis_pool.get_pool()
+    FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
     app.state.redis_pool = redis_pool
-
     await init_db()
-
-    await FastAPILimiter.init(redis_client)
 
     yield
 
     await redis_pool.stop()  # Close Redis connection pool
+    await close_db()
 
 
 async def get_context(
-    db: AsyncSession = Depends(get_db), redis: RedisPool = Depends(get_redis_pool)
+    db: AsyncSession = Depends(get_session), redis: RedisPool = Depends(get_redis_pool)
 ):
     return {"db": db, "redis": redis}
 
@@ -73,8 +73,8 @@ app.add_middleware(
 
 
 @app.get("/")
-async def example_endpoint():
-    return {"message": "root"}
+async def index():
+    return dict(hello="world2")
 
 
 app.include_router(api_router, prefix="/api/v1")

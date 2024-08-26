@@ -1,98 +1,64 @@
 from app.db.crud.crud_acs5 import ACS5CRUD
-from app.db.models.acs5 import (ACS5Demographics, ACS5Employment, ACS5Income)
-from app.schemas.census.acs5 import (
-    ACS5DemographicsSchema,
-    ACS5EmploymentSchema,
-    ACS5IncomeSchema,
-)
-
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 from app.core.redis import RedisPool
-from fastapi import HTTPException
-from app.core.logging_config import configure_logging
 from .BaseService import BaseService
 from typing import Dict, Any
+from app.schemas.census.acs5 import *
+from app.db.models.acs5 import *
+
+
+from app.core.logging_config import configure_logging
+
+
 configure_logging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
 
 class ACS5Service(BaseService):
-    """Service for handling operations related to Congress Members."""
+    """Service for handling operations related to ACS5 data."""
 
-    def __init__(self, db: AsyncSession, redis: RedisPool):
-        super().__init__(db, redis, ACS5CRUD)
-                
-    async def get_cd_acs5_demographics(self, district_num: str, state_fips: str) -> Dict[str, Any]:
-        cd_demographics_db = self.crud.get_congerssional_district_asc5_demographics(district_num, state_fips)
-        
-        if not cd_demographics_db:
-            logger.info(f'ACS5 Demographic data not found for state {state_fips} congressional district {district_num}')
-            raise HTTPException(status_code=404, detail="CongressMember not found")
+    def __init__(
+        self, db: AsyncSession, redis: RedisPool, district_num: str, state_fips: str
+    ):
+        super().__init__(
+            db, redis, ACS5CRUD, district_num=district_num, state_fips=state_fips
+        )
 
-        return cd_demographics_db
+    async def get_acs5_data(self, model) -> Dict[str, Any]:
+        data = await self.fetch_and_validate(
+            self.crud.get_congressional_district_acs5_data,
+            model,
+            error_message=f"ACS5 data not found for state {self.crud.state_fips} congressional district {self.crud.district_num}",
+        )
+        return data
 
-    async def get_cd_asc5_employment(self, district_num: str, state_fips: str) -> Dict[str, Any]:
-        cd_demographics_db = self.crud.get_congerssional_district_asc5_employment(district_num, state_fips)
-        
-        if not cd_demographics_db:
-            logger.info(f'ACS5 employment data not found for state {state_fips} congressional district {district_num}')
-            raise HTTPException(status_code=404, detail="Data for state congressional district not found")
+    async def fetch_acs5_info(self):
+        db_acs5_cd_demographics = await self.get_acs5_data(ACS5Demographics)
+        db_acs5_cd_income = await self.get_acs5_data(ACS5Income)
+        db_acs5_cd_employment = await self.get_acs5_data(ACS5Employment)
 
-        return cd_demographics_db
-    
-    async def get_cd_asc5_income(self, district_num: str, state_fips: str) -> Dict[str, Any]:
-        cd_demographics_db = self.crud.get_congerssional_district_asc5_income(district_num, state_fips)
-        
-        if not cd_demographics_db:
-            logger.info(f'ACS5 income data not found for state {state_fips} congressional district {district_num}')
-            raise HTTPException(status_code=404, detail="Data for state congressional district not found")
+        return self.transform_to_schema(
+            db_acs5_cd_demographics, db_acs5_cd_employment, db_acs5_cd_income
+        )
 
-        return cd_demographics_db
+    def transform_to_schema(
+        self, cd_demographics, cd_employment, cd_income
+    ) -> Dict[str, Any]:
+        cd_demographics_schema = [
+            ACS5DemographicsSchema.model_validate(record) for record in cd_demographics
+        ]
+        cd_employment_schema = [
+            ACS5EmploymentSchema.model_validate(record) for record in cd_employment
+        ]
+        cd_income_schema = [
+            ACS5IncomeSchema.model_validate(record) for record in cd_income
+        ]
 
-
-
-    # async def get_congress_member_info(self, bioguide_id: str) -> Dict[str, Any]:
-    #     """Fetch Congress member info, terms, and sponsored bills."""
-        
-        
-        
-    #     # db_congress_member = await self.fetch_congress_member(bioguide_id)
-    #     # db_congress_member_terms = await self.fetch_congress_member_terms(bioguide_id)
-    #     # db_congress_member_sponsorship_record = await self.fetch_congress_member_sponsored_bills(bioguide_id)
-
-    #     return self.transform_to_schema(
-    #         db_congress_member, db_congress_member_terms, db_congress_member_sponsorship_record
-    #     )
-
-    # async def fetch_congress_member(self, bioguide_id: str) -> CongressMember:
-    #     """Fetch congress member from the database."""
-    #     db_congress_member = await self.crud.get_by_bioguide_id(self.db, bioguide_id)
-    #     if not db_congress_member:
-    #         logger.info(f"CongressMember not found for bioguide_id: {bioguide_id}")
-    #         raise HTTPException(status_code=404, detail="CongressMember not found")
-    #     return db_congress_member
-
-    # async def fetch_congress_member_terms(self, bioguide_id: str) -> list:
-    #     """Fetch congress member terms from the database."""
-    #     return await self.crud.get_congress_member_terms(self.db, bioguide_id=bioguide_id)
-
-    # async def fetch_congress_member_sponsored_bills(self, bioguide_id: str) -> list:
-    #     """Fetch congress member sponsored bills from the database."""
-    #     return await self.crud.get_congress_member_sponsorship_record(self.db, bioguide_id=bioguide_id)
-
-    # def transform_to_schema(self, member, terms, sponsored_bills) -> Dict[str, Any]:
-    #     """Transform database models to schema and prepare the final response."""
-    #     congress_member_schema = CongressMemberSchema.model_validate(member)
-    #     congress_member_terms_schema = [
-    #         CongressMemberTermsSchema.model_validate(term) for term in terms
-    #     ]
-    #     congress_member_sponsored_bills_schema = [
-    #         CongressMemberSponsoredBillsSchema.model_validate(bill) for bill in sponsored_bills
-    #     ]
-
-    #     return {
-    #         "congress_member": congress_member_schema.model_dump(),
-    #         "terms": [term.model_dump() for term in congress_member_terms_schema],
-    #         "sponsored_bills": [bill.model_dump() for bill in congress_member_sponsored_bills_schema],
+        return {
+            "cd_demographics": [
+                record.model_dump() for record in cd_demographics_schema
+            ],
+            "cd_employment": [record.model_dump() for record in cd_employment_schema],
+            "cd_income": [record.model_dump() for record in cd_income_schema],
         }

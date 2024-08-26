@@ -1,11 +1,11 @@
 from sqlalchemy import Column, Integer, String, Boolean, Date, ARRAY, Float
-from sqlalchemy.dialects.postgresql import JSON, ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from .base_model import BaseModel
 
 
 class CongressMember(BaseModel):
-    __tablename__ = "congress_members_historical"
+    __tablename__ = "congress_members"
 
     bioguide_id = Column(String, primary_key=True, index=True)
     is_current_member = Column(Boolean)
@@ -22,7 +22,7 @@ class CongressMember(BaseModel):
     member_title = Column(String)
     depiction_image_url = Column(String)
     depiction_attribution = Column(String)
-    leadership_titles = Column(JSON)
+    leadership_type = Column(String)
     address = Column(String)
     office_phone_number = Column(String)
     contact_form = Column(String)

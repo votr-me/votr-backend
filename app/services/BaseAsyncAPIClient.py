@@ -2,14 +2,14 @@ import asyncio
 import json
 import logging
 from typing import Any, Dict, Optional
-
 import httpx
 from fastapi import HTTPException
 
 from app.core.logging_config import configure_logging
 
+
 configure_logging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
 
 class BaseAsyncAPIClient:
@@ -57,7 +57,6 @@ class BaseAsyncAPIClient:
         attempt = 0
         while attempt < self.retry_attempts:
             try:
-                logger.debug("Attempting to hit API endpoint...")
                 response = await self.client.request(
                     method, url, params=params, headers=headers
                 )
@@ -113,14 +112,6 @@ class BaseAsyncAPIClient:
         headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         return await self._request("GET", endpoint, params, headers)
-
-    async def post(
-        self,
-        endpoint: str,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
-        return await self._request("POST", endpoint, data, headers)
 
     async def close(self):
         await self.client.aclose()

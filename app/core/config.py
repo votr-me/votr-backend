@@ -28,6 +28,7 @@ class GlobalConfig(BaseConfig):
     DB_FORCE_ROLL_BACK: bool = False
     logs_directory: str = "app/logs"
     testing: bool = False
+    DBLOGS: Optional[bool] = None
 
 
 class DevConfig(GlobalConfig):
@@ -39,11 +40,11 @@ class DevConfig(GlobalConfig):
     GEOCODIO_API_KEY: Optional[str] = None
     CONGRESS_GOV_API_KEY: Optional[str] = None
     OPENSECRETS_API_KEY: Optional[str] = None
-    CACHE_TTL: Optional[int] = 3600
-    REDIS_URL: Optional[str] = "redis://localhost"
+    CACHE_TTL: Optional[int] = None
+    REDIS_URL: Optional[str] = None
     FEC_API_KEY: Optional[str] = None
-    ENCRYPTION_KEY: Optional[str] = None
-    KEYCOVE_SECRET_KEY: Optional[str] = None
+    DEV_USER_SESSION_KEY: Optional[str] = None
+    DEV_DBLOGS: Optional[bool] = None
 
     class Config:
         env_prefix = "DEV_"
@@ -52,6 +53,7 @@ class DevConfig(GlobalConfig):
 class ProdConfig(GlobalConfig):
     LOG_LVL: str = "INFO"
     testing: bool = False
+    PROD_DBLOGS: Optional[bool] = None
 
     class Config:
         env_prefix = "PROD_"
@@ -60,6 +62,7 @@ class ProdConfig(GlobalConfig):
 class TestConfig(GlobalConfig):
     LOG_LVL: str = "TEST"
     testing: bool = True
+    TEST_DBLOGS: Optional[bool] = None
 
     class Config:
         env_prefix = "TEST_"

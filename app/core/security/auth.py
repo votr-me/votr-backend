@@ -12,7 +12,11 @@ import logging
 from app.core.logging_config import configure_logging
 
 configure_logging()
-logger = logging.getLogger(__name__)
+from app.core.logging_config import configure_logging
+
+
+configure_logging()
+logger = logging.getLogger("app")
 
 ph = argon2.PasswordHasher()
 api_key_header = APIKeyHeader(name="X-API-Key")

@@ -4,7 +4,11 @@ import redis.asyncio as redis
 
 from app.core.config import config
 
-logger = logging.getLogger(__name__)
+from app.core.logging_config import configure_logging
+
+
+configure_logging()
+logger = logging.getLogger("app")
 
 
 class RedisPool:

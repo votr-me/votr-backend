@@ -196,6 +196,8 @@ numba = "^0.60.0"
 alembic = "^1.13.2"
 greenlet = "^3.0.3"
 strawberry-graphql = {extras = ["fastapi"], version = "^0.237.2"}
+fastapi-sessions = "^0.3.2"
+us = "^3.2.0"
 
 [build-system]
 requires = ["poetry-core"]

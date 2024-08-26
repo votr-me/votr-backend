@@ -6,6 +6,7 @@ from sqlalchemy import (
 )
 from .base_model import BaseModel
 
+
 class ACS5Demographics(BaseModel):
     __tablename__ = "acs5_demographics_historical"
 
@@ -75,6 +76,7 @@ class ACS5Demographics(BaseModel):
     us_race_two_or_more_total = Column(Integer, nullable=True)
     us_pct_two_or_more = Column(Float, nullable=True)
 
+
 class ACS5Employment(BaseModel):
     __tablename__ = "acs5_employment_historical"
 
@@ -110,6 +112,7 @@ class ACS5Employment(BaseModel):
     us_pct_civilian_labor_force = Column(Float, nullable=True)
     us_civilian_employed = Column(Float, nullable=True)
     us_pct_civilian_employed = Column(Float, nullable=True)
+
 
 class ACS5Income(BaseModel):
     __tablename__ = "acs5_income_historical"
@@ -225,137 +228,141 @@ class ACS5Income(BaseModel):
     us_pct_hh_income_200k_or_more = Column(Float, nullable=True)
     us_median_family_income = Column(Float, nullable=True)
 
-class ACS5CongressionalDistrictDemographics(BaseModel):
-    __tablename__ = "acs5_cd_demographics_historical"
-    id = Column(String, primary_key=True)
-    year = Column(Integer)
-    state_fip = Column(String)
-    congressional_district = Column(String)
-    total_population = Column(Integer, nullable=True)
-    total_population_moe = Column(Integer, nullable=True)
-    sex_total = Column(Integer, nullable=True)
-    sex_total_moe = Column(Integer, nullable=True)
-    sex_male = Column(Integer, nullable=True)
-    sex_male_moe = Column(Integer, nullable=True)
-    pct_sex_male = Column(Float, nullable=True)
-    male_voting_age_population = Column(Integer, nullable=True)
-    pct_male_voting_age_population = Column(Float, nullable=True)
-    sex_female = Column(Integer, nullable=True)
-    sex_female_moe = Column(Integer, nullable=True)
-    pct_sex_female = Column(Float, nullable=True)
-    female_voting_age_population = Column(Integer, nullable=True)
-    pct_female_voting_age_population = Column(Float, nullable=True)
-    race_white_total = Column(Integer, nullable=True)
-    race_white_total_moe = Column(Integer, nullable=True)
-    pct_race_white = Column(Float, nullable=True)
-    race_black_total = Column(Integer, nullable=True)
-    race_black_total_moe = Column(Integer, nullable=True)
-    pct_race_black = Column(Float, nullable=True)
-    race_asian_total = Column(Integer, nullable=True)
-    race_asian_total_moe = Column(Integer, nullable=True)
-    pct_race_asian = Column(Float, nullable=True)
-    race_pacific_islander_total = Column(Integer, nullable=True)
-    race_pacific_islander_total_moe = Column(Integer, nullable=True)
-    pct_race_pacific_islander = Column(Float, nullable=True)
-    race_other_total = Column(Integer, nullable=True)
-    race_other_total_moe = Column(Integer, nullable=True)
-    pct_race_other = Column(Float, nullable=True)
-    race_two_or_more_total = Column(Integer, nullable=True)
-    race_two_or_more_total_moe = Column(Integer, nullable=True)
-    pct_race_two_or_more = Column(Float, nullable=True)
-    hispanic_total = Column(Integer, nullable=True)
-    hispanic_total_moe = Column(Integer, nullable=True)
-    pct_hispanic = Column(Float, nullable=True)
 
-class ACS5CongressionalDistrictEmployment(BaseModel):
-    __tablename__ = "acs5_cd_employment_historical"
-    
-    id = Column(String, primary_key=True)
-    year = Column(Integer)
-    state_fip = Column(String)
-    congressional_district = Column(String)
-    employment_status_total = Column(Integer, nullable=True)
-    employment_status_total_moe = Column(Integer, nullable=True)
-    in_labor_force = Column(Integer, nullable=True)
-    in_labor_force_moe = Column(Integer, nullable=True)
-    pct_in_labor_force = Column(Float, nullable=True)
-    not_in_labor_force = Column(Integer, nullable=True)
-    not_in_labor_force_moe = Column(Integer, nullable=True)
-    pct_not_in_labor_force = Column(Float, nullable=True)
-    civilian_labor_force = Column(Integer, nullable=True)
-    civilian_labor_force_moe = Column(Integer, nullable=True)
-    pct_civilian_labor_force = Column(Float, nullable=True)
-    civilian_employed = Column(Integer, nullable=True)
-    civilian_employed_moe = Column(Integer, nullable=True)
-    pct_civilian_employed = Column(Float, nullable=True)
-    civilian_unemployed = Column(Integer, nullable=True)
-    civilian_unemployed_moe = Column(Integer, nullable=True)
-    pct_civilian_unemployed = Column(Float, nullable=True)
-    armed_forces = Column(Integer, nullable=True)
-    armed_forces_moe = Column(Integer, nullable=True)
-    pct_armed_forces_employed = Column(Float, nullable=True)
-    
-class ACS5CongressionalDistrictIncome(BaseModel):
-    __tablename__ = "acs5_cd_income_historical"
-    id = Column(String, primary_key=True)
-    year = Column(Integer)
-    state_fip = Column(String)
-    congressional_district = Column(String)
-    hh_income_total = Column(Integer, nullable=True)
-    hh_income_total_moe = Column(Integer, nullable=True)
-    hh_income_less_10k = Column(Integer, nullable=True)
-    hh_income_less_10k_moe = Column(Integer, nullable=True)
-    pct_hh_income_less_10k = Column(Float, nullable=True)
-    hh_income_10k_to_14k = Column(Integer, nullable=True)
-    hh_income_10k_to_14k_moe = Column(Integer, nullable=True)
-    pct_hh_income_10k_to_14k = Column(Float, nullable=True)
-    hh_income_15k_to_19k = Column(Integer, nullable=True)
-    hh_income_15k_to_19k_moe = Column(Integer, nullable=True)
-    pct_hh_income_15k_to_19k = Column(Float, nullable=True)
-    hh_income_20k_to_24k = Column(Integer, nullable=True)
-    hh_income_20k_to_24k_moe = Column(Integer, nullable=True)
-    pct_hh_income_20k_to_24k = Column(Float, nullable=True)
-    hh_income_25k_to_29k = Column(Integer, nullable=True)
-    hh_income_25k_to_29k_moe = Column(Integer, nullable=True)
-    pct_hh_income_25k_to_29k = Column(Float, nullable=True)
-    hh_income_30k_to_34k = Column(Integer, nullable=True)
-    hh_income_30k_to_34k_moe = Column(Integer, nullable=True)
-    pct_hh_income_30k_to_34k = Column(Float, nullable=True)
-    hh_income_35k_to_39k = Column(Integer, nullable=True)
-    hh_income_35k_to_39k_moe = Column(Integer, nullable=True)
-    pct_hh_income_35k_to_39k = Column(Float, nullable=True)
-    hh_income_40k_to_44k = Column(Integer, nullable=True)
-    hh_income_40k_to_44k_moe = Column(Integer, nullable=True)
-    pct_hh_income_40k_to_44k = Column(Float, nullable=True)
-    hh_income_45k_to_49k = Column(Integer, nullable=True)
-    hh_income_45k_to_49k_moe = Column(Integer, nullable=True)
-    pct_hh_income_45k_to_49k = Column(Float, nullable=True)
-    hh_income_50k_to_59k = Column(Integer, nullable=True)
-    hh_income_50k_to_59k_moe = Column(Integer, nullable=True)
-    pct_hh_income_50k_to_59k = Column(Float, nullable=True)
-    hh_income_60k_to_74k = Column(Integer, nullable=True)
-    hh_income_60k_to_74k_moe = Column(Integer, nullable=True)
-    pct_hh_income_60k_to_74k = Column(Float, nullable=True)
-    hh_income_75k_to_99k = Column(Integer, nullable=True)
-    hh_income_75k_to_99k_moe = Column(Integer, nullable=True)
-    pct_hh_income_75k_to_99k = Column(Float, nullable=True)
-    hh_income_100k_to_124k = Column(Integer, nullable=True)
-    hh_income_100k_to_124k_moe = Column(Integer, nullable=True)
-    pct_hh_income_100k_to_124k = Column(Float, nullable=True)
-    hh_income_125k_to_149k = Column(Integer, nullable=True)
-    hh_income_125k_to_149k_moe = Column(Integer, nullable=True)
-    pct_hh_income_125k_to_149k = Column(Float, nullable=True)
-    hh_income_150k_to_199k = Column(Integer, nullable=True)
-    hh_income_150k_to_199k_moe = Column(Integer, nullable=True)
-    pct_hh_income_150k_to_199k = Column(Float, nullable=True)
-    hh_income_200k_or_more = Column(Integer, nullable=True)
-    hh_income_200k_or_more_moe = Column(Integer, nullable=True)
-    pct_hh_income_200k_or_more = Column(Float, nullable=True)
-    family_income_total = Column(Integer, nullable=True)
-    family_income_total_moe = Column(Integer, nullable=True)
-    median_family_income = Column(Integer, nullable=True)
-    median_family_income_moe = Column(Integer, nullable=True)
-    
+# class ACS5CongressionalDistrictDemographics(BaseModel):
+#     __tablename__ = "acs5_cd_demographics_historical"
+#     id = Column(String, primary_key=True)
+#     year = Column(Integer)
+#     state_fip = Column(String)
+#     congressional_district = Column(String)
+#     total_population = Column(Integer, nullable=True)
+#     total_population_moe = Column(Integer, nullable=True)
+#     sex_total = Column(Integer, nullable=True)
+#     sex_total_moe = Column(Integer, nullable=True)
+#     sex_male = Column(Integer, nullable=True)
+#     sex_male_moe = Column(Integer, nullable=True)
+#     pct_sex_male = Column(Float, nullable=True)
+#     male_voting_age_population = Column(Integer, nullable=True)
+#     pct_male_voting_age_population = Column(Float, nullable=True)
+#     sex_female = Column(Integer, nullable=True)
+#     sex_female_moe = Column(Integer, nullable=True)
+#     pct_sex_female = Column(Float, nullable=True)
+#     female_voting_age_population = Column(Integer, nullable=True)
+#     pct_female_voting_age_population = Column(Float, nullable=True)
+#     race_white_total = Column(Integer, nullable=True)
+#     race_white_total_moe = Column(Integer, nullable=True)
+#     pct_race_white = Column(Float, nullable=True)
+#     race_black_total = Column(Integer, nullable=True)
+#     race_black_total_moe = Column(Integer, nullable=True)
+#     pct_race_black = Column(Float, nullable=True)
+#     race_asian_total = Column(Integer, nullable=True)
+#     race_asian_total_moe = Column(Integer, nullable=True)
+#     pct_race_asian = Column(Float, nullable=True)
+#     race_pacific_islander_total = Column(Integer, nullable=True)
+#     race_pacific_islander_total_moe = Column(Integer, nullable=True)
+#     pct_race_pacific_islander = Column(Float, nullable=True)
+#     race_other_total = Column(Integer, nullable=True)
+#     race_other_total_moe = Column(Integer, nullable=True)
+#     pct_race_other = Column(Float, nullable=True)
+#     race_two_or_more_total = Column(Integer, nullable=True)
+#     race_two_or_more_total_moe = Column(Integer, nullable=True)
+#     pct_race_two_or_more = Column(Float, nullable=True)
+#     hispanic_total = Column(Integer, nullable=True)
+#     hispanic_total_moe = Column(Integer, nullable=True)
+#     pct_hispanic = Column(Float, nullable=True)
+
+
+# class ACS5CongressionalDistrictEmployment(BaseModel):
+#     __tablename__ = "acs5_cd_employment_historical"
+
+#     id = Column(String, primary_key=True)
+#     year = Column(Integer)
+#     state_fip = Column(String)
+#     congressional_district = Column(String)
+#     employment_status_total = Column(Integer, nullable=True)
+#     employment_status_total_moe = Column(Integer, nullable=True)
+#     in_labor_force = Column(Integer, nullable=True)
+#     in_labor_force_moe = Column(Integer, nullable=True)
+#     pct_in_labor_force = Column(Float, nullable=True)
+#     not_in_labor_force = Column(Integer, nullable=True)
+#     not_in_labor_force_moe = Column(Integer, nullable=True)
+#     pct_not_in_labor_force = Column(Float, nullable=True)
+#     civilian_labor_force = Column(Integer, nullable=True)
+#     civilian_labor_force_moe = Column(Integer, nullable=True)
+#     pct_civilian_labor_force = Column(Float, nullable=True)
+#     civilian_employed = Column(Integer, nullable=True)
+#     civilian_employed_moe = Column(Integer, nullable=True)
+#     pct_civilian_employed = Column(Float, nullable=True)
+#     civilian_unemployed = Column(Integer, nullable=True)
+#     civilian_unemployed_moe = Column(Integer, nullable=True)
+#     pct_civilian_unemployed = Column(Float, nullable=True)
+#     armed_forces = Column(Integer, nullable=True)
+#     armed_forces_moe = Column(Integer, nullable=True)
+#     pct_armed_forces_employed = Column(Float, nullable=True)
+
+
+# class ACS5CongressionalDistrictIncome(BaseModel):
+#     __tablename__ = "acs5_cd_income_historical"
+#     id = Column(String, primary_key=True)
+#     year = Column(Integer)
+#     state_fip = Column(String)
+#     congressional_district = Column(String)
+#     hh_income_total = Column(Integer, nullable=True)
+#     hh_income_total_moe = Column(Integer, nullable=True)
+#     hh_income_less_10k = Column(Integer, nullable=True)
+#     hh_income_less_10k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_less_10k = Column(Float, nullable=True)
+#     hh_income_10k_to_14k = Column(Integer, nullable=True)
+#     hh_income_10k_to_14k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_10k_to_14k = Column(Float, nullable=True)
+#     hh_income_15k_to_19k = Column(Integer, nullable=True)
+#     hh_income_15k_to_19k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_15k_to_19k = Column(Float, nullable=True)
+#     hh_income_20k_to_24k = Column(Integer, nullable=True)
+#     hh_income_20k_to_24k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_20k_to_24k = Column(Float, nullable=True)
+#     hh_income_25k_to_29k = Column(Integer, nullable=True)
+#     hh_income_25k_to_29k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_25k_to_29k = Column(Float, nullable=True)
+#     hh_income_30k_to_34k = Column(Integer, nullable=True)
+#     hh_income_30k_to_34k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_30k_to_34k = Column(Float, nullable=True)
+#     hh_income_35k_to_39k = Column(Integer, nullable=True)
+#     hh_income_35k_to_39k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_35k_to_39k = Column(Float, nullable=True)
+#     hh_income_40k_to_44k = Column(Integer, nullable=True)
+#     hh_income_40k_to_44k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_40k_to_44k = Column(Float, nullable=True)
+#     hh_income_45k_to_49k = Column(Integer, nullable=True)
+#     hh_income_45k_to_49k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_45k_to_49k = Column(Float, nullable=True)
+#     hh_income_50k_to_59k = Column(Integer, nullable=True)
+#     hh_income_50k_to_59k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_50k_to_59k = Column(Float, nullable=True)
+#     hh_income_60k_to_74k = Column(Integer, nullable=True)
+#     hh_income_60k_to_74k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_60k_to_74k = Column(Float, nullable=True)
+#     hh_income_75k_to_99k = Column(Integer, nullable=True)
+#     hh_income_75k_to_99k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_75k_to_99k = Column(Float, nullable=True)
+#     hh_income_100k_to_124k = Column(Integer, nullable=True)
+#     hh_income_100k_to_124k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_100k_to_124k = Column(Float, nullable=True)
+#     hh_income_125k_to_149k = Column(Integer, nullable=True)
+#     hh_income_125k_to_149k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_125k_to_149k = Column(Float, nullable=True)
+#     hh_income_150k_to_199k = Column(Integer, nullable=True)
+#     hh_income_150k_to_199k_moe = Column(Integer, nullable=True)
+#     pct_hh_income_150k_to_199k = Column(Float, nullable=True)
+#     hh_income_200k_or_more = Column(Integer, nullable=True)
+#     hh_income_200k_or_more_moe = Column(Integer, nullable=True)
+#     pct_hh_income_200k_or_more = Column(Float, nullable=True)
+#     family_income_total = Column(Integer, nullable=True)
+#     family_income_total_moe = Column(Integer, nullable=True)
+#     median_family_income = Column(Integer, nullable=True)
+#     median_family_income_moe = Column(Integer, nullable=True)
+
+
 class ACS5StateDemographics(BaseModel):
     __tablename__ = "acs5_state_demographics_historical"
     id = Column(String, primary_key=True)
@@ -397,9 +404,10 @@ class ACS5StateDemographics(BaseModel):
     hispanic_total_moe = Column(Integer, nullable=True)
     pct_hispanic = Column(Float, nullable=True)
 
+
 class ACS5StateEmployment(BaseModel):
     __tablename__ = "acs5_state_employment_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     state_fip = Column(String)
@@ -423,7 +431,8 @@ class ACS5StateEmployment(BaseModel):
     armed_forces = Column(Integer, nullable=True)
     armed_forces_moe = Column(Integer, nullable=True)
     pct_armed_forces_employed = Column(Float, nullable=True)
-    
+
+
 class ACS5StateIncome(BaseModel):
     __tablename__ = "acs5_state_income_historical"
     id = Column(String, primary_key=True)
@@ -484,10 +493,11 @@ class ACS5StateIncome(BaseModel):
     family_income_total_moe = Column(Integer, nullable=True)
     median_family_income = Column(Integer, nullable=True)
     median_family_income_moe = Column(Integer, nullable=True)
-    
+
+
 class ACS5CountryDemographics(BaseModel):
     __tablename__ = "acs5_us_demographics_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     total_population = Column(Integer, nullable=True)
@@ -526,9 +536,10 @@ class ACS5CountryDemographics(BaseModel):
     hispanic_total_moe = Column(Integer, nullable=True)
     pct_hispanic = Column(Float, nullable=True)
 
+
 class ACS5CountryEmployment(BaseModel):
     __tablename__ = "acs5_us_employment_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     employment_status_total = Column(Integer, nullable=True)
@@ -551,10 +562,11 @@ class ACS5CountryEmployment(BaseModel):
     armed_forces = Column(Integer, nullable=True)
     armed_forces_moe = Column(Integer, nullable=True)
     pct_armed_forces_employed = Column(Float, nullable=True)
-    
+
+
 class ACS5CountryIncome(BaseModel):
     __tablename__ = "acs5_us_income_historical"
-    
+
     id = Column(String, primary_key=True)
     year = Column(Integer)
     hh_income_total = Column(Integer, nullable=True)
@@ -611,4 +623,3 @@ class ACS5CountryIncome(BaseModel):
     family_income_total_moe = Column(Integer, nullable=True)
     median_family_income = Column(Integer, nullable=True)
     median_family_income_moe = Column(Integer, nullable=True)
-    

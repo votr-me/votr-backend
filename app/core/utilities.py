@@ -9,7 +9,11 @@ from app.core.logging_config import configure_logging
 from .constants import US_STATE_ABBREVIATIONS
 
 configure_logging()
-logger = logging.getLogger(__name__)
+from app.core.logging_config import configure_logging
+
+
+configure_logging()
+logger = logging.getLogger("app")
 
 
 def clean_legislator_data(legislator: Dict[str, Any]) -> Dict[str, Any]:
