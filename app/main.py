@@ -19,7 +19,7 @@ from app.core.redis import get_redis_pool, RedisPool
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from app.core.logging_config import configure_logging
-
+from fastapi_cache.decorator import cache
 
 configure_logging()
 logger = logging.getLogger("app")

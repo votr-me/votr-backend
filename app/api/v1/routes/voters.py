@@ -9,6 +9,9 @@ from app.db.session import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
 from app.core.logging_config import configure_logging
+from app.core.redis import RedisPool, get_redis_pool
+from fastapi_cache.decorator import cache
+import hashlib
 
 router = APIRouter()
 
@@ -16,14 +19,15 @@ router = APIRouter()
 configure_logging()
 logger = logging.getLogger("app")
 
-
 @router.get(
     "/my_legislators",
     status_code=200,
 )
+@cache(expire=60)
 async def get_user_location_info(
     request: Request,
     response: Response,
+    redis: RedisPool = Depends(get_redis_pool),
     session: AsyncSession = Depends(get_session),
     client: GeocodioAsyncAPIClient = Depends(get_geocodio_client),
     address: str = Query(..., description="The address to geolocate"),
@@ -33,9 +37,8 @@ async def get_user_location_info(
     ),
 ) -> List[CongressMemberSchema]:
     try:
-        response.set_cookie(
-            key="user_address", value=address, httponly=True, secure=True
-        )
+
+        response.set_cookie(key="user_address", value="8 Delaware Road Medfield MA 02052", httponly=True, secure=True)
         geolocation_data = await client.geolocate(
             address=address,
             fields=fields,
@@ -44,26 +47,21 @@ async def get_user_location_info(
         if not geolocation_data:
             raise HTTPException(status_code=404, detail="No results found")
 
-        response.set_cookie(
-            key="user_geolocation",
-            value=str(geolocation_data),
-            httponly=True,
-            secure=True,
-        )
-
         if geolocation_data:
             _legislators = []
             for id in geolocation_data.get("bioguide_ids", []):
-                _legislator = await CongressMemberCRUD(db=session).get_by_bioguide_id(
-                    bioguide_id=id
-                )
-                if _legislator:
-                    if isinstance(_legislator.leadership_type, dict):
-                        _legislator.leadership_type = transform_leadership_type(
-                            _legislator.leadership_type
-                        )
-                    legislator_schema = CongressMemberSchema.from_orm(_legislator)
-                    _legislators.append(legislator_schema)
+                cached_legislator = await redis.get(f"legislator:{id}")
+                if cached_legislator:
+                    logger.debug(f'Cache hit for legislator {id}')
+                    legislator_schema = CongressMemberSchema(**json.loads(cached_legislator))
+                else:
+                    _legislator = await CongressMemberCRUD(db=session).get_by_bioguide_id(
+                        bioguide_id=id
+                    )
+                    if _legislator:
+                        legislator_schema = CongressMemberSchema.from_orm(_legislator)
+                        await redis.set(f"legislator:{id}", json.dumps(legislator_schema.model_dump()))
+                _legislators.append(legislator_schema)
 
             if len(_legislators) == 0:
                 raise HTTPException(
@@ -72,6 +70,7 @@ async def get_user_location_info(
                 )
 
             if _legislators:
+                
                 # Serialize Pydantic models to JSON
                 serialized_legislators = json.dumps(
                     [legislator.dict() for legislator in _legislators]
