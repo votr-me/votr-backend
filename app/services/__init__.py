@@ -1,12 +1,3 @@
-from .BaseAsyncAPIClient import BaseAsyncAPIClient
-from .CongressMemberService import CongressMemberService
-from .GeocodioAsyncAPIClient import GeocodioAsyncAPIClient
-from .ACS5Service import ACS5Service
+from app.services.legislator_service import LegislatorService
 
-
-__all__ = [
-    "BaseAsyncAPIClient",
-    "CongressMemberService",
-    "GeocodioAsyncAPIClient",
-    "ACS5Service",
-]
+__all__ = [LegislatorService]

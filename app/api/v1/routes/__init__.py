@@ -1,4 +1,3 @@
-from .voters import router as voters_router
+from app.api.v1.routes.voters import router as voter_info_router
 
-
-__all__ = [voters_router]
+__all__ = [voter_info_router]
