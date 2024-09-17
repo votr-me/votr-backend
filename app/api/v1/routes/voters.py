@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.services import AddressService
 from app.dependencies import get_address_service
 import us
+from fastapi_cache.decorator import cache
+from app.core import config
 from app.schemas import VoterInfo
 
 logger = logging.getLogger("app")
@@ -10,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/address_info")
-# @cache(expire=config.DEFAULT_TTL)
+@cache(expire=config.DEFAULT_TTL)
 async def get_address_info(
     address: str, service: AddressService = Depends(get_address_service)
 ):
