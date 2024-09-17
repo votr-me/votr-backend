@@ -55,6 +55,7 @@ class LegislatorSchema(BaseModel):
 
 
 class LegislatorSponsoredBillsSchema(BaseModel):
+    id: str = Field(...)
     bioguide_id: str = Field(...)
     policy_area_name: Optional[str] = Field(None)
     sponsorship_type: str = Field(...)
@@ -69,6 +70,7 @@ class LegislatorSponsoredBillsSchema(BaseModel):
 
 
 class LegislatorTermsSchema(BaseModel):
+    id: str = Field(...)
     bioguide_id: str = Field(...)
     is_current_member: bool = Field(...)
     chamber: str = Field(...)

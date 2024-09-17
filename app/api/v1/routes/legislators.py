@@ -30,5 +30,3 @@ async def get_legislator(
         raise HTTPException(status_code=404, detail="Congress member not found")
 
     return member
-
-

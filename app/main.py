@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from uuid import uuid4
-
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.middleware import is_valid_uuid4
 from fastapi import FastAPI, Depends
@@ -8,16 +7,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.decorator import cache
 from fastapi_cache.backends.redis import RedisBackend
-from fastapi.exceptions import HTTPException
-
 from app.api.routes import api_router
 from app.core.config import config
-from app.core.redis import RedisPool
-from app.services import LegislatorService
-from app.dependencies import get_legislator_service
+from app.core.redis import RedisPool, get_redis_pool
 from app.data import init_db, close_db
+from strawberry.fastapi import GraphQLRouter
+from app.data import get_session
+from app.dependencies import get_context
 
-# from app.graphql.schema import schema
+from app.graphql.schema import schema
 import logging
 
 # Configure logging
@@ -52,15 +50,6 @@ async def lifespan(app: FastAPI):
         logger.info("Application shutdown successful")
 
 
-# async def get_context(
-#     db: AsyncSession = Depends(get_session),
-#     redis: RedisPool = Depends(get_redis_pool),
-# ):
-#     """Dependency injection for GraphQL context"""
-#     return {"db": db, "redis": redis}
-
-
-# Initialize FastAPI app with a lifespan context manager
 app = FastAPI(
     name=config.APP_NAME,
     description=config.PROJECT_DESCRIPTION,
@@ -68,10 +57,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# GraphQL router with context
-# graphql_app = GraphQLRouter(schema, context_getter=get_context)
+graphql_app = GraphQLRouter(schema, context_getter=get_context)
 
-# Add middleware for correlation IDs and CORS
 app.add_middleware(
     CorrelationIdMiddleware,
     header_name="X-Request-ID",
@@ -82,14 +69,15 @@ app.add_middleware(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Replace with your frontend's origin
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, PUT, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(api_router, prefix="/api/v1")
-# app.include_router(graphql_app, prefix="/graphql")
+app.include_router(graphql_app, prefix="/graphql")
+
 if __name__ == "__main__":
     import uvicorn
 

@@ -12,6 +12,7 @@ from app.data.repositories.legislator_repository import (
 )
 from app.core.config import config
 from app.data import GeocodioRepository, get_session
+from app.core.redis import RedisPool, get_redis_pool
 
 
 def get_legislator_repository(
@@ -54,3 +55,11 @@ def get_address_service(
     geocodio_repo: GeocodioRepository = Depends(get_geocodio_repo),
 ) -> AddressService:
     return AddressService(geocodio_repo=geocodio_repo)
+
+
+async def get_context(
+    db: AsyncSession = Depends(get_session),
+    redis: RedisPool = Depends(get_redis_pool),
+):
+    legislator_service = LegislatorService(db=db)
+    return {"db": db, "redis": redis, "legislator_service": legislator_service}
