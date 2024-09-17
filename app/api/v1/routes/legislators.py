@@ -2,10 +2,6 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies import get_legislator_service
 from app.services import LegislatorService
-from fastapi_cache.decorator import cache
-from app.core.config import config
-from app.services import AddressService
-from app.dependencies import get_legislator_service
 
 logger = logging.getLogger("app")
 router = APIRouter()

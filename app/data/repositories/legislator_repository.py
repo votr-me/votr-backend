@@ -3,7 +3,6 @@ from app.data.models.legislators import (
     LegislatorSponsoredBills,
     LegislatorTerms,
 )
-from app.data.models.legislators import Legislator
 from app.data.repositories.base_repository import BaseRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select

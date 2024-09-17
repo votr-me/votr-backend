@@ -4,8 +4,6 @@ from app.data.repositories.legislator_repository import (
     LegislatorTermsRepository,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
-from app.services.base_service import BaseService
 
 
 class LegislatorService:

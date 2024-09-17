@@ -11,7 +11,7 @@ from app.data.repositories.legislator_repository import (
     LegislatorSponsoredBillsRepositoryInterface,
 )
 from app.core.config import config
-from app.data import GeocodioRepository, get_session
+from app.data import GeocodioRepository
 from app.core.redis import RedisPool, get_redis_pool
 
 

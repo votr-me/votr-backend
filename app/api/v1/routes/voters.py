@@ -1,11 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from app.dependencies import get_legislator_service
-from app.services import LegislatorService
-from fastapi_cache.decorator import cache
-from app.core.config import config
 from app.services import AddressService
-from app.dependencies import get_legislator_service, get_address_service
+from app.dependencies import get_address_service
 import us
 from app.schemas import VoterInfo
 
@@ -37,10 +33,11 @@ async def get_address_info(
         raise HTTPException(status_code=404, detail="No results found for the address")
 
     first_result = results[0]
-
     formatted_address = first_result.get("formatted_address")
     address_components = first_result.get("address_components", {})
     state = address_components.get("state")
+    
+
     if not state:
         raise HTTPException(status_code=404, detail="State information not found")
 
@@ -64,14 +61,14 @@ async def get_address_info(
         legislator.get("references", {}).get("bioguide_id")
         for legislator in current_legislators
     ]
-
+        
     voter_info = VoterInfo(
         state=state,
         state_fips=state_fips,
-        formatted_address=formatted_address,
+        address=formatted_address,
         district_name=district_name,
-        district_num=district_number,
-        legislators=legislators,
+        district_number=district_number,
+        bioguide_ids=legislators,
     )
 
     return voter_info

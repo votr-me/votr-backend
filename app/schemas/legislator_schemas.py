@@ -78,7 +78,7 @@ class LegislatorTermsSchema(BaseModel):
     congress: str = Field(...)
     state_code: str = Field(...)
     state_name: str = Field(...)
-    district: Optional[str] = Field(None)  # Districts can be None for Senators
+    district: Optional[str] = Field(None)
     start_year: int = Field(...)
     end_year: Optional[int] = Field(None)
 

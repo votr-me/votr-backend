@@ -2,17 +2,15 @@ from contextlib import asynccontextmanager
 from uuid import uuid4
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.middleware import is_valid_uuid4
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
-from fastapi_cache.decorator import cache
 from fastapi_cache.backends.redis import RedisBackend
 from app.api.routes import api_router
 from app.core.config import config
-from app.core.redis import RedisPool, get_redis_pool
+from app.core.redis import RedisPool
 from app.data import init_db, close_db
 from strawberry.fastapi import GraphQLRouter
-from app.data import get_session
 from app.dependencies import get_context
 
 from app.graphql.schema import schema
