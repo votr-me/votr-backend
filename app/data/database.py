@@ -24,7 +24,6 @@ async_session = sessionmaker(
 
 async def init_db():
     async with engine.begin() as conn:
-        # Create the database tables if they don't exist (optional)
         await conn.run_sync(Base.metadata.create_all)
 
 

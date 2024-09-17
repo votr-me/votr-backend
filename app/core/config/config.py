@@ -17,7 +17,7 @@ class BaseConfig(BaseSettings):
     ENV_STATE: Optional[str] = None
     PROJECT_DESCRIPTION: Optional[str] = None
     api_v1_str: str = "/api/v1"
-    GEOCODIO_BASE_URL: ClassVar[str] = "https://api.geocod.io/v1.7/"
+    GEOCODIO_BASE_URL: ClassVar[str] = "https://api.geocod.io/v1.7/geocode"
     CACHE_TTL: Optional[int] = 3600
     LOG_LVL: str = "INFO"  # Add LOG_LVL to BaseConfig
     logs_directory: str = "app/logs"

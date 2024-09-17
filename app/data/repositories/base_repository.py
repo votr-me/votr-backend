@@ -1,8 +1,8 @@
+# repositories/base_repository.py
 from typing import Type, TypeVar, Generic, List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-# Define a generic type for models
 T = TypeVar("T")
 
 
@@ -32,7 +32,8 @@ class BaseRepository(Generic[T]):
                 setattr(db_obj, key, value)
             await self.db.commit()
             await self.db.refresh(db_obj)
-        return db_obj
+            return db_obj
+        return None
 
     async def delete(self, record_id: int) -> bool:
         """Delete a record by ID"""
@@ -42,3 +43,23 @@ class BaseRepository(Generic[T]):
             await self.db.commit()
             return True
         return False
+
+    async def get_by_id(self, record_id: int) -> Optional[T]:
+        """Retrieve a record by its primary key ID"""
+        query = select(self.model).where(self.model.id == record_id)
+        result = await self.db.execute(query)
+        return result.scalars().one_or_none()
+
+    async def get_by_field(self, field_name: str, value: Any) -> Optional[T]:
+        """Retrieve a single record by a specified field."""
+        field = getattr(self.model, field_name)
+        query = select(self.model).where(field == value)
+        result = await self.db.execute(query)
+        return result.scalars().one_or_none()
+
+    async def get_all_by_field(self, field_name: str, value: Any) -> List[T]:
+        """Retrieve all records matching a specified field."""
+        field = getattr(self.model, field_name)
+        query = select(self.model).where(field == value)
+        result = await self.db.execute(query)
+        return result.scalars().all()

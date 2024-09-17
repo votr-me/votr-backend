@@ -1,24 +1,56 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.services.legislator_service import LegislatorService
+from app.services import LegislatorService, AddressService
 from app.data.session import get_session
 from app.data.repositories.legislator_repository import (
     LegislatorRepository,
     LegislatorTermsRepository,
     LegislatorSponsoredBillsRepository,
+    LegislatorRepositoryInterface,
+    LegislatorTermsRepositoryInterface,
+    LegislatorSponsoredBillsRepositoryInterface,
 )
+from app.core.config import config
+from app.data import GeocodioRepository, get_session
 
 
-async def get_legislator_service(
+def get_legislator_repository(
     db: AsyncSession = Depends(get_session),
-) -> LegislatorService:
-    legislator_repo = LegislatorRepository(db)
-    legislator_terms_repo = LegislatorTermsRepository(db)
-    legislator_sponsored_bills_repo = LegislatorSponsoredBillsRepository(db)
+) -> LegislatorRepositoryInterface:
+    return LegislatorRepository(db)
 
+
+def get_bills_repository(
+    db: AsyncSession = Depends(get_session),
+) -> LegislatorSponsoredBillsRepositoryInterface:
+    return LegislatorSponsoredBillsRepository(db)
+
+
+def get_terms_repository(
+    db: AsyncSession = Depends(get_session),
+) -> LegislatorTermsRepositoryInterface:
+    return LegislatorTermsRepository(db)
+
+
+def get_legislator_service(
+    legislator_repo: LegislatorRepositoryInterface = Depends(get_legislator_repository),
+    bills_repo: LegislatorSponsoredBillsRepositoryInterface = Depends(
+        get_bills_repository
+    ),
+    terms_repo: LegislatorTermsRepositoryInterface = Depends(get_terms_repository),
+) -> LegislatorService:
     return LegislatorService(
-        db=db,
         legislator_repo=legislator_repo,
-        legislator_terms_repo=legislator_terms_repo,
-        legislator_sponsored_bills_repo=legislator_sponsored_bills_repo,
+        bills_repo=bills_repo,
+        terms_repo=terms_repo,
     )
+
+
+def get_geocodio_repo() -> GeocodioRepository:
+    return GeocodioRepository(api_key=config.GEOCODIO_API_KEY)
+
+
+def get_address_service(
+    geocodio_repo: GeocodioRepository = Depends(get_geocodio_repo),
+) -> AddressService:
+    return AddressService(geocodio_repo=geocodio_repo)

@@ -27,19 +27,26 @@ redis_pool = RedisPool(config.REDIS_URL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan event to initialize and shut down resources (Redis, DB)"""
+    """Lifespan event to initialize and shut down resources (Redis, DB)."""
     try:
+        # Initialize Redis pool
         await redis_pool.start()
         redis_client = await redis_pool.get_pool()
         FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
-        app.state.redis_pool = redis_pool  # Store pool in app state for future use
+
+        # Store Redis pool in app state for access in other parts of the app
+        app.state.redis_pool = redis_pool
+
+        # Initialize the database (e.g., create tables)
         await init_db()
+
         logger.info("Application startup successful")
         yield  # Proceed to serve the application
     except Exception as e:
-        logger.error(f"Error during application startup: {e}")
-        raise
+        logger.exception("Error during application startup")
+        raise e
     finally:
+        # Close Redis pool and database connections
         await redis_pool.stop()
         await close_db()
         logger.info("Application shutdown successful")

@@ -2,23 +2,22 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from typing import AsyncGenerator
 from sqlalchemy.orm import sessionmaker
 from app.core.config.config import config
-
+from sqlalchemy.pool import NullPool
 
 DATABASE_URL = config.DATABASE_URL
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # Set to True if you want to log all the SQL queries
-    pool_size=20,  # Set the pool size for handling concurrent connections
-    max_overflow=10,  # Allow up to 10 overflow connections during spikes
-    future=True,  # SQLAlchemy 2.0 style
+    echo=True,  # Set to True to enable SQL query logging
+    poolclass=NullPool,
 )
 
 AsyncSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
     autocommit=False,
     autoflush=False,
-    bind=engine,
-    class_=AsyncSession,  # Ensure that we are using async sessions
 )
 
 
