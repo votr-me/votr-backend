@@ -5,7 +5,6 @@ from sqlalchemy.future import select
 
 T = TypeVar("T")
 
-
 class BaseRepository(Generic[T]):
     def __init__(self, db: AsyncSession, model: Type[T]):
         self.db = db

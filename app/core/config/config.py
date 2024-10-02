@@ -86,8 +86,6 @@ def get_config(env_state: Optional[str] = None) -> GlobalConfig:
     }
 
     try:
-        # logger.debug(config_classes)
-        logger.debug(ROOT)
         return config_classes[env_state.lower()]()
     except KeyError:
         raise ValueError(f"Unknown environment state: {env_state}")

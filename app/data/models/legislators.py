@@ -3,9 +3,8 @@ from sqlalchemy import Column, Integer, String, Boolean, Date, ARRAY, Float
 
 from .base import BaseModel
 
-
 class Legislator(BaseModel):
-    __tablename__ = "legislators"
+    __tablename__ = "legislators_historical"
 
     bioguide_id = Column(String, primary_key=True, index=True)
     is_current_member = Column(Boolean)
@@ -39,7 +38,13 @@ class Legislator(BaseModel):
     icpsr_id = Column(String)
     wikipedia_id = Column(String)
     fec_ids = Column(ARRAY(String))
-
+    num_sponsored_legislation = Column(Integer)
+    num_cosponsored_legislation = Column(Integer)
+    term_count = Column(Integer)
+    first_year_in_chamber = Column(Integer)
+    last_year_in_chamber = Column(Integer)
+    total_years_served = Column(Integer)
+    num_congresses_served = Column(Integer)
 
 class LegislatorSponsoredBills(BaseModel):
     __tablename__ = "legislator_sponsor_congress_policy_area_historical"

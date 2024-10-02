@@ -6,6 +6,9 @@ from datetime import date
 def convert_date_to_string(value: date) -> str:
     return value.isoformat()
 
+class LegislatorLeadership(BaseModel):
+    year: int = Field(...)
+    title: str = Field(...)
 
 class LegislatorSchema(BaseModel):
     bioguide_id: str = Field(...)
@@ -40,7 +43,14 @@ class LegislatorSchema(BaseModel):
     icpsr_id: Optional[str] = Field(None)
     wikipedia_id: Optional[str] = Field(None)
     fec_ids: Optional[List[str]] = Field(None)
-
+    num_sponsored_legislation:Optional[int] = Field(None)
+    num_cosponsored_legislation:Optional[int] = Field(None)
+    term_count:Optional[int] = Field(None)
+    first_year_in_chamber:Optional[int] = Field(None)
+    last_year_in_chamber:Optional[int] = Field(None)
+    total_years_served:Optional[int] = Field(None)
+    num_congresses_served:Optional[int] = Field(None)
+    
     class Config:
         from_attributes = True
         populate_by_name = True

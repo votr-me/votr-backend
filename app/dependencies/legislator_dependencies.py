@@ -33,19 +33,21 @@ def get_terms_repository(
     return LegislatorTermsRepository(db)
 
 
-def get_legislator_service(
-    legislator_repo: LegislatorRepositoryInterface = Depends(get_legislator_repository),
-    bills_repo: LegislatorSponsoredBillsRepositoryInterface = Depends(
-        get_bills_repository
-    ),
-    terms_repo: LegislatorTermsRepositoryInterface = Depends(get_terms_repository),
-) -> LegislatorService:
-    return LegislatorService(
-        legislator_repo=legislator_repo,
-        bills_repo=bills_repo,
-        terms_repo=terms_repo,
-    )
+# def get_legislator_service(
+#     legislator_repo: LegislatorRepositoryInterface = Depends(get_legislator_repository),
+#     bills_repo: LegislatorSponsoredBillsRepositoryInterface = Depends(
+#         get_bills_repository
+#     ),
+#     terms_repo: LegislatorTermsRepositoryInterface = Depends(get_terms_repository),
+# ) -> LegislatorService:
+#     return LegislatorService(
+#         legislator_repo=legislator_repo,
+#         bills_repo=bills_repo,
+#         terms_repo=terms_repo,
+#     )
 
+def get_legislator_service(db: AsyncSession = Depends(get_session)):
+    return LegislatorService(db=db)
 
 def get_geocodio_repo() -> GeocodioRepository:
     return GeocodioRepository(api_key=config.GEOCODIO_API_KEY)

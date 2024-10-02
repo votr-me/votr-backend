@@ -61,7 +61,7 @@ def configure_logging() -> None:
                 "default": {
                     "class": "rich.logging.RichHandler",
                     "level": "DEBUG",
-                    "formatter": "console",
+                    "formatter": "console",  # Explicitly use the "console" formatter
                     "filters": ["redact_api_key"],
                 },
                 "timed_rotating_file": {
@@ -78,10 +78,10 @@ def configure_logging() -> None:
             },
             "loggers": {
                 "uvicorn": {
-                    "handlers": ["default", "timed_rotating_file"],
-                    "level": "INFO",
-                    "propagate": True,
-                },
+                        "handlers": ["default", "timed_rotating_file"],
+                        "level": "INFO",
+                        "propagate": True,
+                    },
                 "fastapi": {
                     "handlers": handlers,
                     "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
@@ -92,13 +92,14 @@ def configure_logging() -> None:
                     "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
                     "propagate": True,
                 },
-                "sqlalchemy.engine": {
-                    "handlers": handlers,
+                "sqlalchemy.engine.Engine": {
+                    "handlers": ["default", "timed_rotating_file"],  # Ensure it uses the default handler
                     "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
+                    "formatter": "console",  # Explicitly set the formatter here
                     "propagate": False,
                 },
                 "sqlalchemy.pool": {
-                    "handlers": handlers,
+                    "handlers": ["default", "timed_rotating_file"],  # Ensure it uses the default handler
                     "level": "DEBUG" if isinstance(config, DevConfig) else "INFO",
                     "propagate": False,
                 },

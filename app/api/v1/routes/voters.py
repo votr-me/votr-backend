@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/address_info")
-@cache(expire=config.DEFAULT_TTL)
+@cache(expire=60)
 async def get_address_info(
     address: str, service: AddressService = Depends(get_address_service)
 ):
