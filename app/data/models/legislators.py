@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Date, ARRAY, Float
 from .base import BaseModel
 
 class Legislator(BaseModel):
-    __tablename__ = "legislators_historical"
+    __tablename__ = "legislators"
 
     bioguide_id = Column(String, primary_key=True, index=True)
     is_current_member = Column(Boolean)
@@ -73,3 +73,7 @@ class LegislatorTerms(BaseModel):
     district = Column(String)
     start_year = Column(Integer)
     end_year = Column(Integer)
+
+# class LegislatorVotingRecord(BaseModel):
+#     __tablename__ = 'dim_legislator_voting_record'
+#     pass
